@@ -1,0 +1,16 @@
+# Raw data files (too large for GitHub, >100MB)
+monthly_crsp.csv
+sm-calls_with_connectors.parquet
+[usa]_[all_factors]_[monthly]_[vw_cap].csv
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Environments
+.env
+.venv/
