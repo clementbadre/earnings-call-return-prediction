@@ -29,9 +29,9 @@ import numpy as np
 from scipy import stats
 
 ROOT      = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PRED_PATH = os.path.join(ROOT, "outputs", "model_results.parquet")
+PRED_PATH = os.path.join(ROOT, "outputs", "model_results_v2.parquet")
 CRSP_PATH = os.path.join(ROOT, "outputs", "crsp_clean.parquet")
-OUT_PATH  = os.path.join(ROOT, "outputs", "backtest_results.parquet")
+OUT_PATH  = os.path.join(ROOT, "outputs", "backtest_results_v2.parquet")
 
 COST_ONE_WAY = 0.002  # 0.2% per leg
 
@@ -145,54 +145,77 @@ def performance_metrics(rets: pd.Series, sprtrn: pd.Series) -> dict:
     }
 
 
+def run_period(
+    preds: pd.DataFrame,
+    sprtrn: pd.Series,
+    model_names: list[str],
+    strategies: list[tuple],
+    period_start: str,
+    period_end: str,
+) -> dict:
+    """Run all model × strategy combos on a given date window."""
+    mask  = (preds["MthCalDt"] >= period_start) & (preds["MthCalDt"] <= period_end)
+    preds_p = preds[mask]
+    summary = {}
+    for model_name in model_names:
+        df = preds_p[preds_p["model"] == model_name].copy()
+        if len(df) == 0:
+            continue
+        for strat_name, lq, sq in strategies:
+            key = f"{model_name} | {strat_name}"
+            monthly  = run_strategy(df, strat_name, lq, sq)
+            if len(monthly) == 0:
+                continue
+            rets_net = monthly.set_index("MthCalDt")["ret_net"]
+            avg_turn = monthly["turnover"].mean()
+            m_net    = performance_metrics(rets_net, sprtrn)
+            summary[key] = {
+                "Net (%)":      m_net["ann_return"],
+                "Sharpe net":   m_net["sharpe"],
+                "Alpha (%)":    m_net["alpha_ann"],
+                "Max DD (%)":   m_net["max_drawdown"],
+                "Turnover (%)": round(avg_turn * 100, 1),
+            }
+    return summary
+
+
 def main():
     print("Loading predictions...")
     preds, crsp = load_data()
-
-    models = preds["model"].unique()
-    print(f"  Models available: {list(models)}")
-
-    best_model = "JKP+FinBERT"
-    df = preds[preds["model"] == best_model].copy()
-    print(f"  Using model: {best_model}  ({len(df):,} rows)")
+    print(f"  Models available: {list(preds['model'].unique())}")
 
     sprtrn = crsp.set_index("MthCalDt")["sprtrn"]
 
-    strategies = [
+    model_names = ["JKP_only", "FinBERT_only", "JKP+FinBERT", "JKP+FinBERT_w10x"]
+    strategies  = [
         ("LS_decile",   0.10, 0.10),
         ("LS_quintile", 0.20, 0.20),
         ("LO_decile",   0.10, None),
     ]
 
+    periods = [
+        ("2019-2023 (full)",       "2019-01-01", "2023-12-31"),
+        ("2019      (pre-COVID)",  "2019-01-01", "2019-12-31"),
+        ("2020      (COVID)",      "2020-01-01", "2020-12-31"),
+        ("2021-2023 (post-COVID)", "2021-01-01", "2023-12-31"),
+    ]
+
+    for period_label, start, end in periods:
+        print(f"\n{'='*65}")
+        print(f"  PERIOD: {period_label}")
+        print(f"{'='*65}")
+        summary = run_period(preds, sprtrn, model_names, strategies, start, end)
+        df_sum  = pd.DataFrame(summary).T
+        print(df_sum.to_string())
+
+    # Save full-period monthly returns for the combined model
     all_monthly = []
-    summary     = {}
-
-    for name, lq, sq in strategies:
-        print(f"\nRunning strategy: {name}...")
-        monthly = run_strategy(df, name, lq, sq)
-        all_monthly.append(monthly)
-
-        rets_gross = monthly.set_index("MthCalDt")["ret_gross"]
-        rets_net   = monthly.set_index("MthCalDt")["ret_net"]
-        avg_turn   = monthly["turnover"].mean()
-
-        m_gross = performance_metrics(rets_gross, sprtrn)
-        m_net   = performance_metrics(rets_net,   sprtrn)
-
-        summary[name] = {
-            "Gross return (%)":    m_gross["ann_return"],
-            "Net return (%)":      m_net["ann_return"],
-            "Sharpe (gross)":      m_gross["sharpe"],
-            "Sharpe (net)":        m_net["sharpe"],
-            "Max drawdown (%)":    m_gross["max_drawdown"],
-            "Alpha ann. (%)":      m_gross["alpha_ann"],
-            "Beta":                m_gross["beta"],
-            "Avg turnover (%)":    round(avg_turn * 100, 1),
-        }
-
-    print("\n=== BACKTEST RESULTS (2019-2023, out-of-sample) ===")
-    summary_df = pd.DataFrame(summary).T
-    print(summary_df.to_string())
+    for model_name in model_names:
+        df = preds[preds["model"] == model_name].copy()
+        for strat_name, lq, sq in strategies:
+            monthly = run_strategy(df, strat_name, lq, sq)
+            monthly["model"] = model_name
+            all_monthly.append(monthly)
 
     results = pd.concat(all_monthly, ignore_index=True)
     results.to_parquet(OUT_PATH, index=False)
