@@ -1,0 +1,42 @@
+\begin{titlepage}
+    \begin{tikzpicture}[remember picture,overlay]
+        % Bande verticale rouge
+        \fill[red] (current page.north west) rectangle
+        ([xshift=3cm]current page.south west);
+
+% Logo EPFL dans la bande
+    \node[anchor=north east]
+        at ([xshift=-0.7cm,yshift=-1cm]current page.north east)
+        {\includegraphics[width=8cm]{Image/Logo/epfl.png}};
+    \end{tikzpicture}
+
+    \vspace*{3.8cm}
+
+    % Contenu à droite
+    \hspace*{1.5cm}
+    \begin{minipage}{0.9\textwidth}
+    \begin{flushright}
+        {\Huge  \textbf{CO$_2$ Emissions of Copper Production in Chile}}\\[0.4cm]
+        {\Large Economic growth and sustainability}\\[1.2cm]
+    
+        \rule{0.65\linewidth}{0.6pt}\\[1.2cm]
+    
+        {\Large \textsc{École Polytechnique Fédérale de Lausanne}}\\[2.2cm]
+    
+        {\normalsize \textit{Authors / Students :}}\\[0.3cm]
+    
+        {\Large\textbf{
+            Victoria Nene (364043)\\
+            Léonard Rambeau (362474)\\
+            Edoardo Maserati (363595)\\
+            Ismail Essaidi (341008)
+        }}\\[1.8cm]
+    
+        {\normalsize \textit{Teacher: Philippe Thalmann}}\\[0.3cm]
+        {\normalsize \textit{Supervisor: Gino Baudry}}\\[0.3cm]
+    
+        {\large \today}
+    \end{flushright}
+    \end{minipage}
+
+\end{titlepage}

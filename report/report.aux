@@ -1,0 +1,68 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{huang2023}
+\citation{jkp2023}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{3}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Data}{3}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}CRSP Monthly Returns}{3}{subsection.2.1}\protected@file@percent }
+\citation{araci2019}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}JKP Quantitative Factors}{4}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Earnings Calls and FinBERT Inference}{4}{subsection.2.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Empirical distribution of FinBERT sentiment scores across 34,643 earnings calls. The dominant neutral score and low negativity reflect the inherent positivity bias in prepared managerial communications.}}{4}{figure.caption.1}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:finbert_dist}{{1}{4}{Empirical distribution of FinBERT sentiment scores across 34,643 earnings calls. The dominant neutral score and low negativity reflect the inherent positivity bias in prepared managerial communications}{figure.caption.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Methodology}{4}{section.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Pipeline Overview}{4}{subsection.3.1}\protected@file@percent }
+\citation{huang2023}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces End-to-end project pipeline from raw data to backtest results.}}{5}{figure.caption.2}\protected@file@percent }
+\newlabel{fig:pipeline}{{2}{5}{End-to-end project pipeline from raw data to backtest results}{figure.caption.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Signal Freshness: A Critical Pre-processing Step}{5}{subsection.3.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Distribution of the lag between the most recent earnings call and the prediction month. \textit  {Left}: before filtering --- median lag of 7 months renders most signals stale. \textit  {Right}: after the 3-month freshness filter.}}{5}{figure.caption.3}\protected@file@percent }
+\newlabel{fig:freshness}{{3}{5}{Distribution of the lag between the most recent earnings call and the prediction month. \textit {Left}: before filtering --- median lag of 7 months renders most signals stale. \textit {Right}: after the 3-month freshness filter}{figure.caption.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Feature Engineering}{5}{subsection.3.3}\protected@file@percent }
+\citation{grinold1999}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Engineered FinBERT features. Delta features have NaN for a firm's first earnings call (no prior quarter to compare).}}{6}{table.caption.4}\protected@file@percent }
+\newlabel{tab:features}{{1}{6}{Engineered FinBERT features. Delta features have NaN for a firm's first earnings call (no prior quarter to compare)}{table.caption.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Temporal Train / Validation / Test Split}{6}{subsection.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Models: XGBoost Ablation Study}{6}{subsection.3.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.6}Evaluation Metrics}{6}{subsection.3.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.7}Backtesting and Transaction Costs}{7}{subsection.3.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}Results}{7}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Ablation Study}{7}{subsection.4.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Ablation study --- out-of-sample test period (January 2019 -- December 2023).}}{7}{table.caption.5}\protected@file@percent }
+\newlabel{tab:ablation}{{2}{7}{Ablation study --- out-of-sample test period (January 2019 -- December 2023)}{table.caption.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Ablation study: Rank IC (left), net annualised return of the LS decile strategy (centre), and net Sharpe ratio (right) for each model variant. High Rank IC does not guarantee high backtest return.}}{7}{figure.caption.6}\protected@file@percent }
+\newlabel{fig:ablation}{{4}{7}{Ablation study: Rank IC (left), net annualised return of the LS decile strategy (centre), and net Sharpe ratio (right) for each model variant. High Rank IC does not guarantee high backtest return}{figure.caption.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Backtest Performance}{8}{subsection.4.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Backtest results --- LS Decile strategy, out-of-sample 2019--2023. Transaction cost: 0.2\% one-way on monthly turnover.}}{8}{table.caption.7}\protected@file@percent }
+\newlabel{tab:backtest}{{3}{8}{Backtest results --- LS Decile strategy, out-of-sample 2019--2023. Transaction cost: 0.2\% one-way on monthly turnover}{table.caption.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Cumulative net returns for the LS Decile (left) and LO Decile (right) strategies, 2019--2023. The S\&P500 benchmark is shown as a dashed line. The orange band marks the COVID-19 period.}}{8}{figure.caption.8}\protected@file@percent }
+\newlabel{fig:cumrets}{{5}{8}{Cumulative net returns for the LS Decile (left) and LO Decile (right) strategies, 2019--2023. The S\&P500 benchmark is shown as a dashed line. The orange band marks the COVID-19 period}{figure.caption.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Period Robustness}{9}{subsection.4.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Annualised net return of the LS Decile strategy across sub-periods. FinBERT-only performance is positive in all three periods, with the strongest returns in 2021--2023.}}{9}{figure.caption.9}\protected@file@percent }
+\newlabel{fig:periods}{{6}{9}{Annualised net return of the LS Decile strategy across sub-periods. FinBERT-only performance is positive in all three periods, with the strongest returns in 2021--2023}{figure.caption.9}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces FinBERT-only LS Decile net return and Sharpe ratio by sub-period.}}{9}{table.caption.10}\protected@file@percent }
+\newlabel{tab:periods}{{4}{9}{FinBERT-only LS Decile net return and Sharpe ratio by sub-period}{table.caption.10}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Rolling-Window Rank IC Analysis}{9}{subsection.4.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Monthly Rank IC for FinBERT-only (top) and JKP+FinBERT $\times $10 (bottom) over 2015--2023. The blue line is the 12-month rolling mean.}}{10}{figure.caption.11}\protected@file@percent }
+\newlabel{fig:monthly_ic}{{7}{10}{Monthly Rank IC for FinBERT-only (top) and JKP+FinBERT $\times $10 (bottom) over 2015--2023. The blue line is the 12-month rolling mean}{figure.caption.11}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Mean monthly Rank IC by year and model. FinBERT-only (top row) is positive in 8 of 9 years.}}{10}{figure.caption.12}\protected@file@percent }
+\newlabel{fig:ic_heatmap}{{8}{10}{Mean monthly Rank IC by year and model. FinBERT-only (top row) is positive in 8 of 9 years}{figure.caption.12}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Rolling-window summary over 108 out-of-sample months (2015--2023).}}{10}{table.caption.13}\protected@file@percent }
+\newlabel{tab:rolling}{{5}{10}{Rolling-window summary over 108 out-of-sample months (2015--2023)}{table.caption.13}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Rolling 12-month annualised net return for the FinBERT-only LS Decile strategy (2019--2023). Mean $= +6.75\%$.}}{11}{figure.caption.14}\protected@file@percent }
+\newlabel{fig:rolling}{{9}{11}{Rolling 12-month annualised net return for the FinBERT-only LS Decile strategy (2019--2023). Mean $= +6.75\%$}{figure.caption.14}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Discussion}{11}{section.5}\protected@file@percent }
+\newlabel{sec:disc}{{5}{11}{Discussion}{section.5}{}}
+\@writefile{toc}{\contentsline {paragraph}{Cross-sectional vs.\ time-series signals.}{11}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{The combination paradox.}{11}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Limitations.}{11}{section.5}\protected@file@percent }
+\bibstyle{plainnat}
+\bibcite{araci2019}{{1}{2019}{{Araci}}{{}}}
+\bibcite{grinold1999}{{2}{1999}{{Grinold \& Kahn}}{{}}}
+\bibcite{huang2023}{{3}{2023}{{Huang et al.}}{{}}}
+\bibcite{jkp2023}{{4}{2023}{{Jensen, Kelly \& Pedersen}}{{}}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusion}{12}{section.6}\protected@file@percent }
+\gdef \@abspage@last{12}

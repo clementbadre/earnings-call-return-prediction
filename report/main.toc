@@ -1,0 +1,26 @@
+\babel@toc {english}{}\relax 
+\contentsline {section}{\numberline {1}Introduction}{1}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Contributions}{1}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Main Findings}{1}{subsection.1.2}%
+\contentsline {section}{\numberline {2}Data}{2}{section.2}%
+\contentsline {subsection}{\numberline {2.1}CRSP Monthly Returns}{2}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}JKP Quantitative Factors}{2}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Earnings Calls and FinBERT Inference}{2}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Freshness Filter: A Critical Pre-processing Step}{2}{subsection.2.4}%
+\contentsline {section}{\numberline {3}Methodology}{4}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Pipeline Overview}{4}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Feature Engineering}{4}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Temporal Train / Validation / Test Split}{4}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Models: XGBoost Ablation Study}{4}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}Evaluation Metrics}{5}{subsection.3.5}%
+\contentsline {subsection}{\numberline {3.6}Investment Strategies and Transaction Costs}{5}{subsection.3.6}%
+\contentsline {section}{\numberline {4}Results}{6}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Ablation Study}{6}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Backtest Performance}{6}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Period Robustness}{7}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Rolling-Window Rank IC Analysis (2015--2023)}{8}{subsection.4.4}%
+\contentsline {section}{\numberline {5}Discussion}{10}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Cross-Sectional vs.\ Time-Series Signals}{10}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}The Combination Paradox}{10}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Limitations}{10}{subsection.5.3}%
+\contentsline {section}{\numberline {6}Conclusion}{11}{section.6}%

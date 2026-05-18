@@ -1,0 +1,23 @@
+\contentsline {section}{\numberline {1}Introduction}{3}{section.1}%
+\contentsline {section}{\numberline {2}Data}{3}{section.2}%
+\contentsline {subsection}{\numberline {2.1}CRSP Monthly Returns}{3}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}JKP Quantitative Factors}{4}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Earnings Calls and FinBERT Inference}{4}{subsection.2.3}%
+\contentsline {section}{\numberline {3}Methodology}{4}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Pipeline Overview}{4}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Signal Freshness: A Critical Pre-processing Step}{5}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Feature Engineering}{5}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Temporal Train / Validation / Test Split}{6}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}Models: XGBoost Ablation Study}{6}{subsection.3.5}%
+\contentsline {subsection}{\numberline {3.6}Evaluation Metrics}{6}{subsection.3.6}%
+\contentsline {subsection}{\numberline {3.7}Backtesting and Transaction Costs}{7}{subsection.3.7}%
+\contentsline {section}{\numberline {4}Results}{7}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Ablation Study}{7}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Backtest Performance}{8}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Period Robustness}{9}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Rolling-Window Rank IC Analysis}{9}{subsection.4.4}%
+\contentsline {section}{\numberline {5}Discussion}{11}{section.5}%
+\contentsline {paragraph}{Cross-sectional vs.\ time-series signals.}{11}{section.5}%
+\contentsline {paragraph}{The combination paradox.}{11}{section.5}%
+\contentsline {paragraph}{Limitations.}{11}{section.5}%
+\contentsline {section}{\numberline {6}Conclusion}{12}{section.6}%

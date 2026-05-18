@@ -1,0 +1,76 @@
+\subsection{Pipeline Overview}
+
+Figure~\ref{fig:pipeline} summarises the full pipeline from raw data to backtest results.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/fig9_pipeline.pdf}
+    \caption{End-to-end project pipeline. Each box represents a processing stage; italic text below each box describes the key design choice at that step.}
+    \label{fig:pipeline}
+\end{figure}
+
+\subsection{Feature Engineering}
+
+Beyond raw FinBERT scores, we construct the following features motivated by the finance NLP literature:
+
+\begin{table}[H]
+\centering
+\caption{Engineered FinBERT features. Delta features are NaN for a firm's first earnings call.}
+\label{tab:features}
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{>{\ttfamily}l p{9.5cm}}
+\toprule
+\normalfont\textbf{Feature} & \textbf{Definition and motivation} \\
+\midrule
+net\_sentiment      & $p_\text{pos} - p_\text{neg}$: signed directional signal \\
+sentiment\_strength & $1 - p_\text{neu}$: non-neutrality of the call \\
+delta\_net          & $\Delta\,\texttt{net\_sentiment}$ quarter-over-quarter --- captures earnings surprises \cite{huang2023} \\
+delta\_pos, delta\_neg & Quarter-over-quarter changes in individual sentiment components \\
+months\_since\_call & Signal freshness (1, 2 or 3 by construction after filter) \\
+*\_zscore           & Cross-sectional z-score within each prediction month for \texttt{net\_sentiment}, \texttt{delta\_net}, \texttt{delta\_pos} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Cross-sectional z-scoring removes time-varying means and scales, preventing the model from learning calendar effects that cannot be reproduced out-of-sample.
+
+\subsection{Temporal Train / Validation / Test Split}
+
+We apply a strict temporal split with no random shuffling:
+\begin{itemize}[noitemsep]
+    \item \textbf{Train}: January 2008 -- December 2014
+    \item \textbf{Validation} (early stopping only): January 2015 -- December 2018
+    \item \textbf{Test} (all reported metrics): January 2019 -- December 2023
+\end{itemize}
+A \texttt{StandardScaler} is fitted on the training set and applied to validation and test sets.
+
+\subsection{Models: XGBoost Ablation Study}
+
+We train four XGBoost regressors targeting $r^e_{i,t}$:
+\begin{enumerate}[noitemsep]
+    \item \textbf{JKP only}: 153 quantitative factor features.
+    \item \textbf{FinBERT only}: 12 sentiment features (Table~\ref{tab:features}).
+    \item \textbf{JKP + FinBERT}: all 165 features.
+    \item \textbf{JKP + FinBERT $\times$10}: same 165 features but FinBERT columns receive $10\times$ higher sampling probability via XGBoost's \texttt{feature\_weights} parameter in \texttt{DMatrix}, biasing each split toward sentiment features.
+\end{enumerate}
+
+All models share the same hyperparameters: 500 estimators, early stopping at 30 rounds (validation RMSE), learning rate 0.05, max depth 4, subsampling 0.8, $L_2$ regularisation 1.0.
+
+\subsection{Evaluation Metrics}
+
+\begin{itemize}[noitemsep]
+    \item \textbf{$R^2$}: fraction of variance explained. Expected near zero for individual excess returns.
+    \item \textbf{Rank IC}: Spearman rank correlation between predicted and realised excess returns. The standard performance metric in cross-sectional equity research \cite{grinold1999}.
+    \item \textbf{IC $t$-statistic}: $\bar{\text{IC}} / (\sigma_\text{IC} / \sqrt{T})$ over monthly ICs --- tests whether the signal is statistically distinguishable from noise.
+\end{itemize}
+
+\subsection{Investment Strategies and Transaction Costs}
+
+Three equal-weighted strategies are implemented monthly:
+\begin{itemize}[noitemsep]
+    \item \textbf{LS Decile}: long top 10\%, short bottom 10\%.
+    \item \textbf{LS Quintile}: long top 20\%, short bottom 20\%.
+    \item \textbf{LO Decile}: long top 10\% only.
+\end{itemize}
+
+Transaction costs of \textbf{0.2\% one-way} (0.4\% round-trip) are applied on monthly turnover. We report annualised gross and net returns, Sharpe ratio, maximum drawdown, OLS alpha, and beta versus the S\&P500.

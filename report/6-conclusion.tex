@@ -1,0 +1,11 @@
+This paper demonstrates that fresh earnings-call sentiment, engineered with quarter-over-quarter delta features and cross-sectional standardisation, provides a statistically significant and economically meaningful cross-sectional signal for excess stock returns. Our three key contributions are:
+
+\begin{itemize}[noitemsep]
+    \item A \textbf{freshness filter} ($\leq 3$ months) that eliminates stale signals and recovers predictive power that is entirely absent in the raw, unfiltered sentiment data. Without this filter, median signal staleness of 7 months renders FinBERT scores essentially uninformative.
+    \item A \textbf{structural diagnosis} of JKP quantitative factors: their within-month constancy makes them time-series rather than cross-sectional predictors, and combining them with FinBERT degrades rather than improves portfolio performance due to signal crowding and higher transaction costs.
+    \item A \textbf{robust out-of-sample evaluation} spanning 108 months (2015--2023) with explicit transaction costs, multi-period sub-period analysis, and a formal IC $t$-test ($t = 2.67$, $p < 0.01$).
+\end{itemize}
+
+The FinBERT-only long-short decile strategy delivers $+11.4\%$ net annualised return, Sharpe ratio 0.79, and alpha $+13.4\%$ over the 2019--2023 out-of-sample period. Performance is positive in all three sub-periods (pre-COVID: $+3.9\%$; COVID: $+15.0\%$; post-COVID: $+12.7\%$), with the strongest risk-adjusted returns observed after the COVID-19 shock.
+
+These results suggest that the informational content of earnings-call communication --- particularly its \textit{change} relative to prior quarters --- is not yet fully priced by the market, even in the post-2019 period. The cross-sectional nature of this signal, combined with the relatively low turnover of sentiment-based portfolios, makes it a promising complement to quantitative factor strategies in practice.

@@ -1,0 +1,89 @@
+\documentclass[11pt]{article}
+
+% --- Packages essentiels ---
+\usepackage[a4paper,margin=1.8cm]{geometry}
+\usepackage[english]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{setspace}
+\usepackage{fancyhdr}
+\usepackage{ragged2e}
+\usepackage{colortbl}
+\usepackage{multirow}
+\usepackage{microtype}
+\setlength{\parindent}{0pt}
+
+% --- Couleur EPFL ---
+\definecolor{EPFLred}{RGB}{213, 0, 50}
+\definecolor{lightgray}{RGB}{245, 245, 245}
+
+% --- Interline ---
+\singlespacing
+
+% --- Style des titres ---
+\titleformat{\section}
+  {\large\bfseries}
+  {\thesection}{1em}{\vspace{0.3em}}
+
+\titleformat{\subsection}
+  {\bfseries}{\thesubsection}{1em}{}
+
+% --- Header & Footer ---
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small EPFL}
+\lhead{\small ML in Finance}
+\cfoot{\thepage}
+
+\begin{document}
+
+% -------------------------------------------------
+% PAGE DE GARDE
+% -------------------------------------------------
+\include{0-cover}
+\tableofcontents
+\newpage
+
+% -------------------------------------------------
+% CONTENU
+% -------------------------------------------------
+\section{Introduction}
+\pagenumbering{arabic}
+\input{1-introduction}
+\newpage
+
+\section{Data}
+\input{2-data}
+\newpage
+
+\section{Methodology}
+\input{3-methodology}
+\newpage
+
+\section{Results}
+\input{4-results}
+\newpage
+
+\section{Discussion}
+\input{5-discussion}
+\newpage
+
+\section{Conclusion}
+\input{6-conclusion}
+\newpage
+
+\bibliographystyle{abbrv}
+\bibliography{references}
+
+\end{document}

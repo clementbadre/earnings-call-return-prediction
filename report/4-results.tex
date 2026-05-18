@@ -1,0 +1,133 @@
+\subsection{Ablation Study}
+
+Table~\ref{tab:ablation} and Figure~\ref{fig:ablation} present out-of-sample metrics on the 2019--2023 test set.
+
+\begin{table}[H]
+\centering
+\caption{Ablation study --- out-of-sample test period (January 2019 -- December 2023).}
+\label{tab:ablation}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Model} & \textbf{$R^2$} & \textbf{Rank IC} \\
+\midrule
+JKP only                  & $-0.016$ & $0.034$ \\
+FinBERT only               & $-0.013$ & $0.009$ \\
+JKP + FinBERT              & $-0.013$ & $0.051$ \\
+JKP + FinBERT $\times$10   & $-0.012$ & $\mathbf{0.072}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Adding FinBERT to JKP improves global Rank IC by 50\% (0.051 vs.\ 0.034). The feature-weighted variant raises IC further to 0.072. The negative $R^2$ values are expected and reflect the near-unpredictability of individual stock excess returns in absolute terms --- this is a property of financial markets, not a modelling failure.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/fig7_ablation.pdf}
+    \caption{Ablation study: Rank IC (left), net annualised return of LS Decile (centre), and net Sharpe ratio (right). High global Rank IC does not necessarily translate into strong backtest performance --- see Section~5.}
+    \label{fig:ablation}
+\end{figure}
+
+\textbf{Structural finding on JKP.} When evaluated using \textit{monthly} Rank IC (one Spearman correlation per month, cross-sectional), JKP-only yields NaN. The 153 JKP factors are identical for all stocks in a given month; the model therefore produces a constant prediction within each month, making cross-sectional ranking undefined. \textbf{JKP factors are time-series signals (market timing) and cannot perform cross-sectional stock selection by design.}
+
+\subsection{Backtest Performance}
+
+Table~\ref{tab:backtest} reports full backtest results; Figure~\ref{fig:cumrets} plots cumulative net returns.
+
+\begin{table}[H]
+\centering
+\caption{Backtest results --- LS Decile strategy, out-of-sample 2019--2023. Sharpe and Alpha are net of transaction costs (0.2\% one-way).}
+\label{tab:backtest}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lrrrrrr}
+\toprule
+\textbf{Model} & \textbf{Gross} & \textbf{Net} & \textbf{Sharpe (net)} & \textbf{Alpha} & \textbf{Beta} & \textbf{Turnover} \\
+\midrule
+JKP only                  & $-0.12\%$ & $-4.50\%$ & $-0.36$ & $-0.48\%$ & $0.03$ & $91\%$ \\
+\rowcolor{lightgray}
+FinBERT only               & $\mathbf{+14.2\%}$ & $\mathbf{+11.4\%}$ & $\mathbf{0.79}$ & $\mathbf{+13.4\%}$ & $0.06$ & $\mathbf{58\%}$ \\
+JKP + FinBERT              & $+4.85\%$ & $+0.49\%$ & $0.04$ & $+4.77\%$ & $0.01$ & $91\%$ \\
+JKP + FinBERT $\times$10   & $-4.54\%$ & $-8.53\%$ & $-0.52$ & $-4.08\%$ & $-0.03$ & $83\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/fig5_cumulative_returns.pdf}
+    \caption{Cumulative net returns: LS Decile (left) and LO Decile (right), 2019--2023. S\&P500 shown as dashed benchmark. Orange band: COVID-19 period.}
+    \label{fig:cumrets}
+\end{figure}
+
+The FinBERT-only model is the clear winner at $+11.4\%$ net annualised return and Sharpe 0.79. Two mechanisms explain this: (i) JKP features add within-month noise rather than cross-sectional signal; (ii) lower portfolio turnover (58\% vs.\ 91\%) saves $\approx 3\%$ per year in transaction costs.
+
+\subsection{Period Robustness}
+
+Figure~\ref{fig:periods} and Table~\ref{tab:periods} show sub-period performance, directly addressing the concern that the COVID-19 shock drives the results.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/fig8_period_robustness.pdf}
+    \caption{Net return of the LS Decile strategy by sub-period. FinBERT-only is positive in all three periods; its best period is 2021--2023, \textit{after} the COVID-19 shock.}
+    \label{fig:periods}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{FinBERT-only LS Decile: net return and Sharpe ratio by sub-period.}
+\label{tab:periods}
+\begin{tabular}{lrrl}
+\toprule
+\textbf{Period} & \textbf{Net} & \textbf{Sharpe} & \textbf{Remark} \\
+\midrule
+2019 (pre-COVID)  & $+3.87\%$ & $0.50$ & Positive in normal market conditions \\
+2020 (COVID-19)   & $+14.99\%$ & $0.77$ & Strong but not unique driver \\
+\textbf{2021--2023 (post-COVID)} & $\mathbf{+12.65\%}$ & $\mathbf{0.87}$ & \textbf{Best sub-period} \\
+2019--2023 (full) & $+11.40\%$ & $0.79$ & Full out-of-sample window \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The post-COVID period is the best-performing sub-period (Sharpe 0.87), confirming that performance is \textbf{not a COVID artefact}.
+
+\subsection{Rolling-Window Rank IC Analysis (2015--2023)}
+
+We extend predictions to the full 108-month out-of-sample window (2015--2023, validation + test) using the model trained on 2008--2014. This provides the most rigorous test of signal stability.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/fig3_monthly_ic.pdf}
+    \caption{Monthly Rank IC for FinBERT-only (top) and JKP+FinBERT $\times$10 (bottom), 2015--2023. Green/red bars: positive/negative months. Blue line: 12-month rolling mean.}
+    \label{fig:monthly_ic}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/fig4_ic_heatmap.pdf}
+    \caption{Mean monthly Rank IC by year and model. FinBERT-only (top row) is positive in 8 of 9 years; only 2017 shows a slight negative mean.}
+    \label{fig:ic_heatmap}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Rolling-window summary over 108 out-of-sample months (2015--2023).}
+\label{tab:rolling}
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Model} & \textbf{Mean IC} & \textbf{\% IC $>0$} & \textbf{IC $t$-stat} & \textbf{Roll-12M net (mean)} \\
+\midrule
+\textbf{FinBERT only}      & $\mathbf{0.0214}$ & $\mathbf{62\%}$ & $\mathbf{2.67}$ & $\mathbf{+6.75\%}$ \\
+JKP only                   & NaN  & ---  & ---  & $-7.20\%$ \\
+JKP + FinBERT              & $-0.003$ & $23\%$ & $-0.24$ & $-4.74\%$ \\
+JKP + FinBERT $\times$10   & $0.010$  & $56\%$ & $1.23$  & $+0.78\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+FinBERT-only is the \textbf{only statistically significant predictor} with IC $t$-stat $= 2.67$ ($p < 0.01$). Figure~\ref{fig:rolling} shows the rolling 12-month net return.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/fig6_rolling_12m.pdf}
+    \caption{Rolling 12-month annualised net return, FinBERT-only LS Decile (2019--2023). Mean $= +6.75\%$. Negative windows are concentrated in 2022 (rate hike shock), not COVID-19.}
+    \label{fig:rolling}
+\end{figure}

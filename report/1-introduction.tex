@@ -1,0 +1,18 @@
+The intersection of natural language processing (NLP) and asset pricing has attracted growing attention since large pre-trained language models became widely available. Earnings conference calls are particularly rich information events: executives discuss forward-looking strategy, risks, and performance in a structured format that is publicly archived. \cite{huang2023} show that \textit{changes} in earnings-call sentiment across quarters --- rather than the sentiment level --- are the most predictive for future stock returns, as the level is largely anticipated by the market.
+
+We build on this insight in a machine learning framework, combining textual sentiment with 153 quantitative factor signals from \cite{jkp2023}. Our research question is: \textbf{does fresh, delta-adjusted earnings-call sentiment add cross-sectional predictive power over quantitative factor signals?}
+
+\subsection{Contributions}
+
+We answer this question with a three-step approach:
+\begin{enumerate}[noitemsep]
+    \item \textbf{Feature engineering} addressing the two main pitfalls of sentiment signals: staleness (median signal age of 7 months in the raw data) and level effects (the market largely prices the sentiment level; only changes are informative).
+    \item \textbf{Ablation study} comparing JKP factors, FinBERT sentiment, and their combination using an XGBoost regression framework with a strict temporal split.
+    \item \textbf{Rigorous out-of-sample evaluation} with explicit transaction costs (0.2\% one-way), multi-period robustness checks, and a formal statistical test of signal persistence (Rank IC $t$-statistic over 108 months).
+\end{enumerate}
+
+\subsection{Main Findings}
+
+Our main finding is that \textbf{FinBERT sentiment, after freshness filtering and delta engineering, is the only statistically significant cross-sectional predictor} in our framework. The FinBERT-only long-short decile strategy yields $+11.4\%$ net annualised return with a Sharpe ratio of 0.79 over the 2019--2023 out-of-sample period. A rolling-window analysis over 108 months confirms a Rank IC $t$-statistic of 2.67 ($p < 0.01$), positive in 62\% of months, and stable across all market regimes including the post-COVID period.
+
+In contrast, JKP quantitative factors --- identical for all stocks within a given month --- are structurally incapable of cross-sectional stock selection. They provide time-series market timing signals that are erased by high portfolio turnover and transaction costs.

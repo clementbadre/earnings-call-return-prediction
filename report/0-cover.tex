@@ -1,0 +1,42 @@
+\begin{titlepage}
+    \begin{tikzpicture}[remember picture,overlay]
+        % Bande verticale rouge
+        \fill[EPFLred] (current page.north west) rectangle
+        ([xshift=3cm]current page.south west);
+
+        % Logo EPFL en haut a droite
+        \node[anchor=north east]
+            at ([xshift=-0.7cm,yshift=-1cm]current page.north east)
+            {\includegraphics[width=8cm]{Image/Logo/epfl.png}};
+    \end{tikzpicture}
+
+    \vspace*{3.8cm}
+
+    \hspace*{1.5cm}
+    \begin{minipage}{0.9\textwidth}
+    \begin{flushright}
+
+        {\Huge \textbf{Predicting Excess Stock Returns\\[0.3em]
+        with Earnings-Call Sentiment\\[0.3em]
+        and Quantitative Factors}}\\[0.5cm]
+
+        {\Large ML in Finance}\\[1.2cm]
+
+        \rule{0.65\linewidth}{0.6pt}\\[1.2cm]
+
+        {\Large \textsc{\'Ecole Polytechnique F\'ed\'erale de Lausanne}}\\[2.2cm]
+
+        {\normalsize \textit{Author / Student :}}\\[0.3cm]
+
+        {\Large\textbf{
+            L\'eo Rambeau (362474)
+        }}\\[1.8cm]
+
+        {\normalsize \textit{Course: ML in Finance}}\\[0.3cm]
+
+        {\large May 2026}
+
+    \end{flushright}
+    \end{minipage}
+
+\end{titlepage}

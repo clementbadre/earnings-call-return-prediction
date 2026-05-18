@@ -11,7 +11,16 @@
       "Bash(/opt/anaconda3/bin/python src/04_merge_datasets.py)",
       "Bash(/opt/anaconda3/bin/python src/04b_feature_engineering.py)",
       "Bash(/opt/anaconda3/bin/python src/05_models.py)",
-      "Bash(/opt/anaconda3/bin/python src/06_backtest.py)"
+      "Bash(/opt/anaconda3/bin/python src/06_backtest.py)",
+      "Bash(/opt/anaconda3/bin/python src/07_rolling_analysis.py)",
+      "Bash(/opt/anaconda3/bin/python src/08_generate_figures.py)",
+      "Bash(pdflatex *)",
+      "Bash(find * -name pdflatex)",
+      "Bash(find /usr* -name pdflatex*)",
+      "Bash(find /Library* -name pdflatex*)",
+      "Bash(which *)",
+      "Bash(tail *)",
+      "Bash(cd * && pdflatex *)"
     ]
   }
 }

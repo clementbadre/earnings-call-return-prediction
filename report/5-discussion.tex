@@ -1,0 +1,28 @@
+\subsection{Cross-Sectional vs.\ Time-Series Signals}
+
+A central finding is the sharp divergence between global Rank IC and actual backtest performance for JKP-containing models. JKP factors carry the same value for all stocks within a given month; they encode \textit{market-level} information (business cycle, risk premia). An XGBoost model trained on these features learns to predict which months are ``good'' or ``bad'' on average --- market timing. Evaluated globally (Spearman across all stock-month observations), this inflates Rank IC because correct market-direction calls apply to all stocks simultaneously.
+
+However, in a long-short portfolio construction, returns are measured as long minus short \textit{within} the same month. A constant prediction within any month produces a random stock ordering, collapsing to zero expected return before costs and negative net returns after. This explains why JKP-only yields undefined monthly Rank IC and $-4.5\%$ net annualised return.
+
+FinBERT sentiment, in contrast, varies \textit{across firms} within the same month --- providing genuine cross-sectional discrimination between firms that just delivered strong versus weak earnings communications.
+
+\subsection{The Combination Paradox}
+
+Adding JKP features to FinBERT reduces out-of-sample net performance despite improving global Rank IC. Two mechanisms are at play:
+
+\begin{enumerate}[noitemsep]
+    \item \textbf{Signal crowding}: XGBoost allocates split budget to high-gain JKP features that carry time-series information. These splits are ``useful'' in the training set but do not improve --- and actively harm --- cross-sectional stock ranking in the test set.
+    \item \textbf{Cost drag}: JKP-driven portfolios have 91\% monthly turnover vs.\ 58\% for FinBERT-only, generating $\approx 3\%$ additional annual transaction costs.
+\end{enumerate}
+
+The feature-weighting approach ($\times$10) partially recovers global Rank IC (0.072), but backtest performance remains negative ($-8.5\%$ net). This reveals that the improved global IC reflects inflated time-series variance rather than better cross-sectional discrimination. Artificially forcing FinBERT features into more splits leads the model to overfit idiosyncratic call-level patterns that do not aggregate into stable portfolios.
+
+\subsection{Limitations}
+
+\begin{enumerate}[noitemsep]
+    \item \textbf{Universe bias}: the freshness filter retains only firms with earnings calls in the past 3 months --- typically mid- and large-caps. Results may not generalise to small-cap or infrequently covered stocks.
+    \item \textbf{Test period}: five years (2019--2023) provides limited statistical power. The 108-month rolling analysis (2015--2023) partially mitigates this; the IC $t$-statistic of 2.67 provides formal significance.
+    \item \textbf{Transaction costs}: 0.2\% one-way is conservative for large-caps but may underestimate costs for smaller firms in our universe.
+    \item \textbf{FinBERT context window}: the 512-token limit requires text chunking. Very long Q\&A sections lose information beyond the early chunks.
+    \item \textbf{Single model class}: we use XGBoost throughout. Alternative architectures (LightGBM, neural networks, attention-based models) might better capture interactions between sentiment and factor signals.
+\end{enumerate}
