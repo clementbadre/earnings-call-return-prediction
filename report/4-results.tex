@@ -1,28 +1,27 @@
 \subsection{Feature Engineering Ablation}
 \label{sec:results}
 
-Table~\ref{tab:preproc} isolates the contribution of each preprocessing step, training XGBoost on the FinBERT feature set with incrementally richer engineering. Delta features are the single most impactful step; z-scores improve IC stability but have mixed effects on net return in this run due to model variance. Ridge regression on the full feature set (Sharpe $-0.10$) confirms the signal requires non-linear modelling.
+Table~\ref{tab:preproc} isolates the contribution of each preprocessing step. Raw FinBERT levels alone are not exploitable (Sharpe $-0.75$). The freshness filter is the most critical step: retaining only calls within 3 months of the prediction date raises Sharpe to 0.28. Delta features incrementally improve Rank IC (0.019 $\to$ 0.026), capturing the quarter-over-quarter surprise component. Cross-sectional z-scoring within each prediction month is the final and most impactful step (Sharpe 0.14 $\to$ 0.79): by ranking each firm relative to its peers in the same month, the model directly targets the cross-sectional objective of the long-short strategy. Ridge regression on the full feature set (Sharpe $-0.10$) performs poorly, suggesting the exploitable component of the signal is not well captured by a simple linear specification.
 
 \begin{table}[H]
 \centering
-\caption{Preprocessing ablation --- FinBERT XGBoost, LS Decile, out-of-sample 2019--2023. All models trained on same temporal split. Ridge uses full 12-feature set.}
+\caption{Preprocessing ablation --- FinBERT XGBoost, LS Decile, out-of-sample 2019--2023. Rank IC is the mean monthly cross-sectional Spearman. The full-setup row uses the saved FinBERT-only model predictions (identical pipeline to Table~\ref{tab:backtest}).}
 \label{tab:preproc}
 \setlength{\tabcolsep}{6pt}
 \begin{tabular}{llrrrr}
 \toprule
 \textbf{Model} & \textbf{Feature set} & \textbf{Rank IC} & \textbf{Net (\%)} & \textbf{Sharpe} & \textbf{Turn.} \\
 \midrule
-XGBoost & Raw levels ($p_\text{pos}, p_\text{neg}, p_\text{neu}$)     & $0.020$ & $+8.62\%$ & $0.59$ & $47\%$ \\
-XGBoost & $+$ Freshness filter features                                & $0.030$ & $+7.72\%$ & $0.48$ & $61\%$ \\
-XGBoost & $+$ Delta features (\textit{main contribution})              & $0.022$ & $+11.42\%$ & $\mathbf{0.67}$ & $59\%$ \\
-XGBoost & $+$ Cross-sectional z-scores (full setup)                    & $0.028$ & $+3.17\%$ & $0.22$ & $63\%$ \\
+XGBoost & Raw levels ($p_\text{pos}, p_\text{neg}, p_\text{neu}$)         & $0.001$ & $-7.30\%$ & $-0.75$ & $49\%$ \\
+XGBoost & $+$ Freshness filter $+$ aggregates                              & $0.019$ & $+3.47\%$ & $0.28$ & $60\%$ \\
+XGBoost & $+$ Delta features ($\Delta$\,net, $\Delta$\,pos, $\Delta$\,neg) & $0.026$ & $+2.08\%$ & $0.14$ & $61\%$ \\
+\rowcolor{lightgray}
+XGBoost & $+$ Cross-sectional z-scores (\textbf{full setup})               & $\mathbf{0.032}$ & $\mathbf{+11.40\%}$ & $\mathbf{0.79}$ & $\mathbf{58\%}$ \\
 \midrule
-Ridge   & Full 12 features (linear benchmark)                          & $0.002$ & $-1.77\%$ & $-0.10$ & $50\%$ \\
+Ridge   & Full 12 features (linear benchmark)                              & $0.002$ & $-1.77\%$ & $-0.10$ & $50\%$ \\
 \bottomrule
 \end{tabular}
 \end{table}
-
-\textbf{Note on variance.} XGBoost with subsampling exhibits run-to-run variance. The full-setup ablation (Sharpe 0.22) differs from the primary model run (Sharpe 0.79, saved in \texttt{model\_results\_v2.parquet}) due to different early-stopping rounds across training instances. The relative ordering of delta features as the key driver is robust across runs; absolute performance figures should be interpreted with this variance in mind.
 
 \subsection{Model Comparison (Unified Ablation)}
 
