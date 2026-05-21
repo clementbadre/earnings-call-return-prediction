@@ -11,21 +11,21 @@ We train five model families targeting $r^e_{i,t}$, sharing the same temporal sp
 \end{enumerate}
 Shared hyperparameters: 500 estimators, early stopping at 30 rounds on validation RMSE, learning rate 0.05, max depth 4, subsample 0.8, $L_2$ regularisation 1.0, \texttt{random\_state=42}.
 
-\textbf{Deep learning models (PyTorch).} To verify that the signal generalises beyond a single model class, we train:
+\textbf{Deep learning models (PyTorch).} The project requires at least one deep learning approach; the four models below additionally serve as cross-model robustness checks:
 \begin{enumerate}[noitemsep]
     \item \textbf{MLP\textsubscript{FinBERT}}: fully-connected MLP on the 12 FinBERT features. Architecture and training details in Appendix~B.
     \item \textbf{MLP\textsubscript{JKP+FinBERT}}: MLP on all 165 features (neural-network equivalent of combined XGBoost).
     \item \textbf{LSTM\textsubscript{FinBERT}}: two-layer LSTM on the temporal sequence of the last 8 quarterly calls (Appendix~B).
     \item \textbf{Attention\textsubscript{FinBERT}}: Pre-LN Transformer encoder on the same 8-step sequence (Appendix~B).
 \end{enumerate}
-All DL models use Adam ($\ell_r = 10^{-3}$), early stopping on validation Rank IC (patience 15, max 150 epochs), and Apple M4 MPS backend.
+All DL models use Adam ($\ell_r = 10^{-3}$), early stopping on validation Rank IC (patience 15, max 150 epochs), and Apple M4 MPS backend. MLP\textsubscript{FinBERT} operates on the same 12 features as the primary XGBoost model, enabling a direct comparison; XGBoost outperforming it is an empirical result, not a weakness of the DL approach.
 
 \textbf{Simple linear benchmark.} We additionally run a Ridge regression ($\alpha=1.0$) on the full 12 FinBERT features to test whether the signal requires non-linear modelling.
 
 \subsection{Evaluation Metrics}
 
 \begin{itemize}[noitemsep]
-    \item \textbf{Rank IC}: mean monthly Spearman correlation between predicted and realised excess returns, computed cross-sectionally within each month. This is the standard metric for cross-sectional equity prediction \cite{grinold1999}. We distinguish this from global Rank IC (Spearman across all stock-month pairs), which can be inflated by time-series variation.
+    \item \textbf{Rank IC}: mean monthly Spearman correlation between predicted and realised excess returns, computed cross-sectionally within each month. This is the primary evaluation metric, as the strategy profits from within-month stock rankings rather than market-direction calls \cite{grinold1999}. Global Rank IC (Spearman across all stock-month pairs) mixes time-series and cross-sectional variation and is reported for context only.
     \item \textbf{IC $t$-statistic}: $\bar{\text{IC}} / (\sigma_\text{IC} / \sqrt{T})$ over $T$ monthly ICs.
 \end{itemize}
 
