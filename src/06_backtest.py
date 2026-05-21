@@ -186,7 +186,7 @@ def main():
 
     sprtrn = crsp.set_index("MthCalDt")["sprtrn"]
 
-    model_names = ["JKP_only", "FinBERT_only", "JKP+FinBERT", "JKP+FinBERT_w10x"]
+    model_names = ["JKP_only", "FinBERT_only", "JKP+FinBERT", "JKP+FinBERT_w10x", "MLP_FinBERT"]
     strategies  = [
         ("LS_decile",   0.10, 0.10),
         ("LS_quintile", 0.20, 0.20),

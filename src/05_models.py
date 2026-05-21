@@ -24,6 +24,9 @@ from xgboost import XGBRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import r2_score
 from scipy.stats import spearmanr
+import torch
+import torch.nn as nn
+from torch.utils.data import TensorDataset, DataLoader
 
 ROOT        = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_PATH   = os.path.join(ROOT, "outputs", "dataset_final_v2.parquet")
@@ -44,6 +47,111 @@ FINBERT_COLS = [
 # All columns that are not JKP factors
 _NON_JKP = {"PERMNO", "MthCalDt", "excess_ret", "SICCD"} | set(FINBERT_COLS)
 
+
+# ---------------------------------------------------------------------------
+# PyTorch MLP
+# ---------------------------------------------------------------------------
+
+class MLP(nn.Module):
+    def __init__(self, n_in: int, hidden: tuple = (64, 32), dropout: float = 0.3):
+        super().__init__()
+        layers, dim = [], n_in
+        for h in hidden:
+            layers += [nn.Linear(dim, h), nn.BatchNorm1d(h), nn.ReLU(), nn.Dropout(dropout)]
+            dim = h
+        layers.append(nn.Linear(dim, 1))
+        self.net = nn.Sequential(*layers)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.net(x).squeeze(-1)
+
+
+def fit_mlp(
+    X_tr: np.ndarray, y_tr: np.ndarray,
+    X_va: np.ndarray, y_va: np.ndarray,
+    epochs: int = 150, batch_size: int = 512,
+    lr: float = 1e-3, patience: int = 15,
+) -> tuple[MLP, float]:
+    device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+
+    loader = DataLoader(
+        TensorDataset(
+            torch.tensor(X_tr, dtype=torch.float32),
+            torch.tensor(y_tr, dtype=torch.float32),
+        ),
+        batch_size=batch_size, shuffle=True,
+    )
+    Xva = torch.tensor(X_va, dtype=torch.float32).to(device)
+
+    model = MLP(X_tr.shape[1]).to(device)
+    opt   = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
+    crit  = nn.MSELoss()
+
+    best_ic, best_state, no_improve = -np.inf, None, 0
+    for _ in range(epochs):
+        model.train()
+        for xb, yb in loader:
+            xb, yb = xb.to(device), yb.to(device)
+            opt.zero_grad()
+            crit(model(xb), yb).backward()
+            opt.step()
+
+        model.eval()
+        with torch.no_grad():
+            val_preds = model(Xva).cpu().numpy()
+        ic = information_coefficient(y_va, val_preds)
+
+        if ic > best_ic:
+            best_ic    = ic
+            best_state = {k: v.cpu().clone() for k, v in model.state_dict().items()}
+            no_improve = 0
+        else:
+            no_improve += 1
+        if no_improve >= patience:
+            break
+
+    model.load_state_dict(best_state)
+    return model.cpu(), best_ic
+
+
+def run_mlp_model(
+    name: str,
+    features: list[str],
+    train: pd.DataFrame,
+    val: pd.DataFrame,
+    test: pd.DataFrame,
+) -> tuple[MLP, pd.DataFrame, dict]:
+    X_train = train[features].values.astype(np.float32)
+    y_train = train["excess_ret"].values.astype(np.float32)
+    X_val   = val[features].values.astype(np.float32)
+    y_val   = val["excess_ret"].values.astype(np.float32)
+    X_test  = test[features].values.astype(np.float32)
+    y_test  = test["excess_ret"].values.astype(np.float32)
+
+    scaler  = StandardScaler()
+    X_train = scaler.fit_transform(X_train)
+    X_val   = scaler.transform(X_val)
+    X_test  = scaler.transform(X_test)
+
+    print(f"\n  Training {name}  ({len(features)} features, PyTorch MLP)...")
+    model, best_val_ic = fit_mlp(X_train, y_train, X_val, y_val)
+    print(f"  Best val Rank IC : {best_val_ic:.4f}")
+
+    model.eval()
+    with torch.no_grad():
+        preds_test = model(torch.tensor(X_test, dtype=torch.float32)).numpy()
+
+    metrics = evaluate(y_test, preds_test)
+    print(f"  R²       (test) : {metrics['r2']:.4f}")
+    print(f"  Rank IC  (test) : {metrics['rank_ic']:.4f}")
+
+    pred_df = test[["PERMNO", "MthCalDt", "excess_ret"]].copy()
+    pred_df["prediction"] = preds_test
+    pred_df["model"]      = name
+    return model, pred_df, metrics
+
+
+# ---------------------------------------------------------------------------
 
 def load_data() -> pd.DataFrame:
     df = pd.read_parquet(DATA_PATH)
@@ -218,16 +326,44 @@ def main():
         all_metrics[name] = metrics
         model.save_model(f"{MODELS_DIR}/{name}.json")
 
+    # MLP on FinBERT features (satisfies the deep-learning requirement)
+    mlp_model, mlp_preds, mlp_metrics = run_mlp_model(
+        "MLP_FinBERT", FINBERT_COLS, train_d, val_d, test_d
+    )
+    all_preds.append(mlp_preds)
+    all_metrics["MLP_FinBERT"] = mlp_metrics
+    torch.save(mlp_model.state_dict(), f"{MODELS_DIR}/MLP_FinBERT.pt")
+
     print("\n=== ABLATION STUDY RESULTS ===")
-    print(f"{'Model':<20} {'R²':>8} {'Rank IC':>10}")
-    print("-" * 42)
+    print(f"{'Model':<24} {'R²':>8} {'Rank IC':>10}")
+    print("-" * 46)
     for name, m in all_metrics.items():
-        print(f"{name:<20} {m['r2']:>8.4f} {m['rank_ic']:>10.4f}")
+        print(f"{name:<24} {m['r2']:>8.4f} {m['rank_ic']:>10.4f}")
 
     results = pd.concat(all_preds, ignore_index=True)
     results.to_parquet(OUT_PRED, index=False)
     print(f"\nPredictions saved → {OUT_PRED}")
     print(f"Models saved      → {MODELS_DIR}/")
+
+    # ------------------------------------------------------------------
+    # Freshness cutoff sensitivity (same JKP+FinBERT XGBoost, cutoffs 1–3)
+    # ------------------------------------------------------------------
+    print("\n=== FRESHNESS CUTOFF SENSITIVITY (JKP + FinBERT XGBoost) ===")
+    print(f"{'Cutoff':>8} {'N_train':>10} {'N_test':>10} {'Rank IC':>10}")
+    print("-" * 44)
+    for cutoff in [1, 2, 3]:
+        df_cut  = df_delta[df_delta["months_since_call"] <= cutoff].copy()
+        tr_c, va_c, te_c = temporal_split(df_cut)
+        feats        = jkp_cols + FINBERT_COLS
+        scaler_fresh = StandardScaler()
+        X_tr_c = scaler_fresh.fit_transform(tr_c[feats].values)
+        X_va_c = scaler_fresh.transform(va_c[feats].values)
+        X_te_c = scaler_fresh.transform(te_c[feats].values)
+        m_cut  = fit_model(X_tr_c, tr_c["excess_ret"].values,
+                           X_va_c, va_c["excess_ret"].values)
+        preds_c = m_cut.predict(X_te_c)
+        ic_c    = information_coefficient(te_c["excess_ret"].values, preds_c)
+        print(f"{cutoff:>8} {len(tr_c):>10,} {len(te_c):>10,} {ic_c:>10.4f}")
 
 
 if __name__ == "__main__":

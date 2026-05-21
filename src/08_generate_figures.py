@@ -224,8 +224,10 @@ def fig_cumulative_returns():
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
 
+    PURPLE = "#7B2D8B"
     configs = [
         ("FinBERT_only", "LS_decile",  GREEN,  "FinBERT LS Decile (net)"),
+        ("MLP_FinBERT",  "LS_decile",  PURPLE, "MLP FinBERT LS Decile (net)"),
         ("JKP+FinBERT",  "LS_decile",  BLUE,   "JKP+FinBERT LS Decile (net)"),
         ("JKP_only",     "LS_decile",  RED,    "JKP LS Decile (net)"),
     ]
@@ -313,15 +315,15 @@ def fig_rolling_12m():
 
 def fig_ablation():
     data = {
-        "Model": ["JKP only", "FinBERT only", "JKP+FinBERT", "JKP+FinBERT ×10"],
-        "Rank IC (test)": [0.0342, 0.0089, 0.0505, 0.0720],
-        "Net Return % (LS decile)": [-4.50, 11.40, 0.49, -8.53],
-        "Sharpe (net)": [-0.361, 0.788, 0.039, -0.523],
+        "Model": ["JKP only", "FinBERT only", "JKP+FinBERT", "JKP+FinBERT ×10", "MLP (FinBERT)"],
+        "Rank IC (test)": [0.0342, 0.0089, 0.0505, 0.0720, 0.0129],
+        "Net Return % (LS decile)": [-4.50, 11.40, 0.49, -8.53, 7.87],
+        "Sharpe (net)": [-0.361, 0.788, 0.039, -0.523, 0.576],
     }
     df = pd.DataFrame(data)
 
-    fig, axes = plt.subplots(1, 3, figsize=(14, 5))
-    bar_colors = [RED, GREEN, BLUE, ORANGE]
+    fig, axes = plt.subplots(1, 3, figsize=(16, 5))
+    bar_colors = [RED, GREEN, BLUE, ORANGE, "#7B2D8B"]  # purple for MLP
 
     for ax, col, ylabel in zip(
         axes,
@@ -332,15 +334,19 @@ def fig_ablation():
                       edgecolor="white", linewidth=0.5, width=0.6)
         ax.axhline(0, color="black", linewidth=0.8)
         ax.set_ylabel(ylabel)
-        ax.set_xticklabels(df["Model"], rotation=20, ha="right", fontsize=9)
+        ax.set_xticks(range(len(df)))
+        ax.set_xticklabels(df["Model"], rotation=22, ha="right", fontsize=9)
         for bar, val in zip(bars, df[col]):
             y = bar.get_height()
-            ax.text(bar.get_x() + bar.get_width()/2,
-                    y + (0.003 if col == "Rank IC (test)" else 0.3),
+            offset = 0.003 if col == "Rank IC (test)" else 0.3
+            va = "bottom" if val >= 0 else "top"
+            y_txt = (y + offset) if val >= 0 else (y - offset)
+            ax.text(bar.get_x() + bar.get_width()/2, y_txt,
                     f"{val:.3f}" if col == "Rank IC (test)" else f"{val:.2f}",
-                    ha="center", va="bottom", fontsize=9, fontweight="bold")
+                    ha="center", va=va, fontsize=8.5, fontweight="bold")
 
-    fig.suptitle("Ablation Study: Model Comparison (Out-of-Sample 2019–2023)", fontsize=13)
+    fig.suptitle("Ablation Study: Model Comparison (Out-of-Sample 2019–2023)\n"
+                 "XGBoost (4 variants) + PyTorch MLP on FinBERT features", fontsize=12)
     plt.tight_layout()
     save("fig7_ablation.pdf")
 
@@ -385,7 +391,7 @@ def fig_pipeline():
         (3.5,  2.0, "JKP Factors\n(153 factors\nmonthly)", ORANGE),
         (6.0,  2.0, "Earnings Calls\n(34,643 calls\nFinBERT →\np_pos/p_neg/p_neu)", GREEN),
         (9.0,  2.0, "Feature\nEngineering\n(freshness, delta,\nz-scores)", BLUE),
-        (11.8, 2.0, "XGBoost\nAblation\n(4 models)", RED),
+        (11.8, 2.0, "Ablation\n(4 XGBoost\n+ MLP)", RED),
     ]
     for x, y, label, color in boxes:
         rect = plt.Rectangle((x - 0.9, y - 0.8), 1.8, 1.6,

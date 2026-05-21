@@ -20,9 +20,10 @@ The feature-weighting approach ($\times$10) partially recovers global Rank IC (0
 \subsection{Limitations}
 
 \begin{enumerate}[noitemsep]
-    \item \textbf{Universe bias}: the freshness filter retains only firms with earnings calls in the past 3 months --- typically mid- and large-caps. Results may not generalise to small-cap or infrequently covered stocks.
-    \item \textbf{Test period}: five years (2019--2023) provides limited statistical power. The 108-month rolling analysis (2015--2023) partially mitigates this; the IC $t$-statistic of 2.67 provides formal significance.
-    \item \textbf{Transaction costs}: 0.2\% one-way is conservative for large-caps but may underestimate costs for smaller firms in our universe.
+    \item \textbf{Cross-model universe comparison}: JKP-only is trained and evaluated on the full CRSP universe ($\approx$122K observations), while FinBERT-containing models use only the freshness-filtered sub-universe ($\approx$104K observations, firms with a call in the past 3 months). This size and composition difference makes direct comparisons across these model groups partially confounded; FinBERT models systematically cover a different --- and likely larger-cap --- universe.
+    \item \textbf{Universe coverage}: the freshness filter retains only firms with recent earnings calls --- typically mid- and large-caps. Results may not generalise to small-cap or infrequently covered stocks.
+    \item \textbf{Test period}: five years (2019--2023) provides limited statistical power. The Sharpe ratio of 0.79 should be interpreted cautiously: with 60 monthly observations, the standard error on the Sharpe is $\approx 0.13$, leaving meaningful uncertainty around the point estimate. The 108-month rolling IC analysis ($t$-stat 2.67) provides stronger evidence of signal persistence.
+    \item \textbf{Freshness cutoff}: the 3-month threshold was set a priori. Sensitivity analysis (Table~\ref{tab:freshness}) shows IC is 3$\times$ higher at 1 month; the optimal cutoff that maximises risk-adjusted backtest performance remains untested.
+    \item \textbf{Transaction costs}: 0.2\% one-way is conservative for large-caps but may underestimate costs for smaller firms. Sensitivity analysis (Table~\ref{tab:costs}) shows FinBERT-only remains profitable up to 0.4\% one-way (Sharpe 0.60), suggesting the strategy is robust to realistic cost assumptions.
     \item \textbf{FinBERT context window}: the 512-token limit requires text chunking. Very long Q\&A sections lose information beyond the early chunks.
-    \item \textbf{Single model class}: we use XGBoost throughout. Alternative architectures (LightGBM, neural networks, attention-based models) might better capture interactions between sentiment and factor signals.
 \end{enumerate}

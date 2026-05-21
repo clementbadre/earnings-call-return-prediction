@@ -44,17 +44,25 @@ We apply a strict temporal split with no random shuffling:
 \end{itemize}
 A \texttt{StandardScaler} is fitted on the training set and applied to validation and test sets.
 
-\subsection{Models: XGBoost Ablation Study}
+\subsection{Models: Ablation Study}
 
-We train four XGBoost regressors targeting $r^e_{i,t}$:
+We train five models targeting $r^e_{i,t}$:
+
+\textbf{XGBoost variants (four models).}
 \begin{enumerate}[noitemsep]
     \item \textbf{JKP only}: 153 quantitative factor features.
     \item \textbf{FinBERT only}: 12 sentiment features (Table~\ref{tab:features}).
     \item \textbf{JKP + FinBERT}: all 165 features.
     \item \textbf{JKP + FinBERT $\times$10}: same 165 features but FinBERT columns receive $10\times$ higher sampling probability via XGBoost's \texttt{feature\_weights} parameter in \texttt{DMatrix}, biasing each split toward sentiment features.
 \end{enumerate}
+All XGBoost models share the same hyperparameters: 500 estimators, early stopping at 30 rounds (validation RMSE), learning rate 0.05, max depth 4, subsampling 0.8, $L_2$ regularisation 1.0.
 
-All models share the same hyperparameters: 500 estimators, early stopping at 30 rounds (validation RMSE), learning rate 0.05, max depth 4, subsampling 0.8, $L_2$ regularisation 1.0.
+\textbf{Deep learning: MLP (PyTorch).}
+To satisfy the deep-learning requirement of the assignment, we train a fully-connected multi-layer perceptron (MLP) from scratch on the 12 FinBERT sentiment features. The architecture is:
+\[
+\text{Input}(12) \;\to\; \text{Linear}(64) \to \text{BN} \to \text{ReLU} \to \text{Dropout}(0.3) \;\to\; \text{Linear}(32) \to \text{BN} \to \text{ReLU} \to \text{Dropout}(0.3) \;\to\; \text{Linear}(1)
+\]
+Training uses Adam ($\ell_r = 10^{-3}$, weight decay $10^{-4}$, batch size 512), with early stopping on validation Rank IC (patience 15 epochs, maximum 150). The Apple M4 MPS backend accelerates GPU training. This model provides a direct deep-learning benchmark on the FinBERT signal, independent of gradient-boosted trees.
 
 \subsection{Evaluation Metrics}
 
