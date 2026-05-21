@@ -314,16 +314,17 @@ def fig_rolling_12m():
 # ── 7. Ablation study bar chart ────────────────────────────────────────────
 
 def fig_ablation():
-    # XGBoost models
-    xgb_models  = ["JKP only", "FinBERT only", "JKP+FinBERT", "JKP+FinBERT ×10"]
-    xgb_ic      = [0.0342,  0.0089,  0.0505,  0.0720]
+    # XGBoost models — Rank IC = monthly cross-sectional Spearman
+    # JKP-only IC = 0 (NaN: within-month constant predictions; shown as 0 with label)
+    xgb_models  = ["JKP only\n(n/a)", "FinBERT only", "JKP+FinBERT\n(25% months)", "JKP+FinBERT ×10"]
+    xgb_ic      = [0.000,  0.0324,  0.0230, -0.0047]
     xgb_net     = [-4.50,  11.40,   0.49,   -8.53]
     xgb_sharpe  = [-0.361,  0.788,  0.039,  -0.523]
     xgb_colors  = [RED, GREEN, BLUE, ORANGE]
 
-    # DL models
+    # DL models — monthly cross-sectional Spearman
     dl_models   = ["MLP\nFinBERT", "MLP\nJKP+FB", "LSTM\nFinBERT", "Attn\nFinBERT"]
-    dl_ic       = [0.0129, -0.0159, -0.0404, -0.0393]
+    dl_ic       = [0.0250, -0.0120, -0.0137, -0.0133]
     dl_net      = [7.87,  -12.86,  -2.31,   2.21]
     dl_sharpe   = [0.576,  -0.871, -0.146,  0.139]
     PURPLES     = ["#7B2D8B", "#B05CC4", "#C490D0", "#DDB9E6"]
@@ -357,8 +358,9 @@ def fig_ablation():
                         ha="center", va=va, fontsize=7.5, fontweight="bold")
 
     fig.suptitle("Ablation Study: XGBoost vs. Deep Learning (Out-of-Sample 2019–2023)\n"
-                 "Top row: XGBoost variants  |  Bottom row: PyTorch DL models",
-                 fontsize=12, y=1.01)
+                 "Top row: XGBoost variants  |  Bottom row: PyTorch DL models  "
+                 "| Rank IC = monthly cross-sectional Spearman",
+                 fontsize=11, y=1.01)
     save("fig7_ablation.pdf")
 
 
