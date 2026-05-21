@@ -64,20 +64,23 @@ Table~\ref{tab:backtest} reports full backtest results; Figure~\ref{fig:cumrets}
 
 \begin{table}[H]
 \centering
-\caption{Backtest results --- LS Decile strategy, out-of-sample 2019--2023. Sharpe and Alpha are net of transaction costs (0.2\% one-way). Models 1--4: XGBoost; Model 5: PyTorch MLP.}
+\caption{Backtest results --- LS Decile strategy, out-of-sample 2019--2023. Sharpe and Alpha are net of transaction costs (0.2\% one-way). Top panel: XGBoost. Bottom panel: PyTorch deep learning models.}
 \label{tab:backtest}
 \setlength{\tabcolsep}{5pt}
 \begin{tabular}{lrrrrrr}
 \toprule
 \textbf{Model} & \textbf{Gross} & \textbf{Net} & \textbf{Sharpe (net)} & \textbf{Alpha} & \textbf{Beta} & \textbf{Turnover} \\
 \midrule
-JKP only                  & $-0.12\%$ & $-4.50\%$ & $-0.36$ & $-4.86\%$ & $0.03$ & $91\%$ \\
+JKP only                  & $-0.12\%$ & $-4.50\%$ & $-0.36$ & $-4.87\%$ & $0.03$ & $91\%$ \\
 \rowcolor{lightgray}
 FinBERT only               & $\mathbf{+14.2\%}$ & $\mathbf{+11.4\%}$ & $\mathbf{0.79}$ & $\mathbf{+10.6\%}$ & $0.06$ & $\mathbf{58\%}$ \\
 JKP + FinBERT              & $+4.85\%$ & $+0.49\%$ & $0.04$ & $+0.42\%$ & $0.01$ & $91\%$ \\
-JKP + FinBERT $\times$10   & $-4.54\%$ & $-8.53\%$ & $-0.52$ & $-8.08\%$ & $-0.03$ & $83\%$ \\
+JKP + FinBERT $\times$10   & $-4.54\%$ & $-8.53\%$ & $-0.52$ & $-8.07\%$ & $-0.03$ & $83\%$ \\
 \midrule
-MLP (FinBERT features)     & $+11.1\%$ & $+7.87\%$ & $0.58$ & $+6.27\%$ & $0.11$ & $67\%$ \\
+MLP\textsubscript{FinBERT}         & $+11.1\%$ & $+7.87\%$ & $0.58$ & $+6.24\%$ & $0.11$ & $67\%$ \\
+MLP\textsubscript{JKP+FinBERT}     & $-8.70\%$ & $-12.9\%$ & $-0.87$ & $-14.7\%$ & $0.13$ & $87\%$ \\
+LSTM\textsubscript{FinBERT}        & $-0.49\%$ & $-2.31\%$ & $-0.15$ & $-2.43\%$ & $0.01$ & $38\%$ \\
+Attention\textsubscript{FinBERT}   & $+4.02\%$ & $+2.21\%$ & $0.14$ & $+1.82\%$ & $0.03$ & $38\%$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -89,7 +92,7 @@ MLP (FinBERT features)     & $+11.1\%$ & $+7.87\%$ & $0.58$ & $+6.27\%$ & $0.11$
     \label{fig:cumrets}
 \end{figure}
 
-FinBERT-only leads at $+11.4\%$ net and Sharpe 0.79. The MLP on the same FinBERT features delivers $+7.87\%$ net (Sharpe 0.58), confirming the signal survives a different model class. Two mechanisms explain why JKP combinations underperform: (i) JKP features add within-month noise rather than cross-sectional signal; (ii) lower portfolio turnover (58\% vs.\ 91\%) saves $\approx 3\%$ per year in transaction costs.
+FinBERT-only leads at $+11.4\%$ net and Sharpe 0.79. MLP\textsubscript{FinBERT} on the same features delivers $+7.87\%$ net (Sharpe 0.58), confirming the signal survives a different model class. Both JKP-combined models (XGBoost and MLP) are sharply negative. LSTM\textsubscript{FinBERT} ($-2.31\%$ net, Sharpe $-0.15$) and Attention\textsubscript{FinBERT} ($+2.21\%$ net, Sharpe $0.14$) are discussed in Section~5. Two mechanisms explain why JKP combinations underperform: (i) JKP features add within-month noise rather than cross-sectional signal; (ii) lower portfolio turnover (58\% vs.\ 91\%) saves $\approx 3\%$ per year in transaction costs.
 
 \textbf{Transaction cost sensitivity.} Table~\ref{tab:costs} shows net returns and Sharpe ratios for FinBERT-only and MLP under cost assumptions ranging from 0.1\% to 0.4\% one-way.
 

@@ -402,7 +402,7 @@ def fig_pipeline():
         (3.5,  2.0, "JKP Factors\n(153 factors\nmonthly)", ORANGE),
         (6.0,  2.0, "Earnings Calls\n(34,643 calls\nFinBERT →\np_pos/p_neg/p_neu)", GREEN),
         (9.0,  2.0, "Feature\nEngineering\n(freshness, delta,\nz-scores)", BLUE),
-        (11.8, 2.0, "Ablation\n(4 XGBoost\n+ MLP)", RED),
+        (11.8, 2.0, "Ablation\n(4 XGBoost\n+ 4 DL)", RED),
     ]
     for x, y, label, color in boxes:
         rect = plt.Rectangle((x - 0.9, y - 0.8), 1.8, 1.6,
