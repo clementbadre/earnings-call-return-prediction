@@ -23,6 +23,6 @@ The \textit{global} Rank IC (Spearman across all stock-month pairs) can appear p
     \item \textbf{Statistical power:} five years (60 months) of test data leave meaningful uncertainty around the Sharpe estimate; the IC $t$-test over 108 months ($t = 2.67$) provides stronger evidence of signal persistence.
     \item \textbf{Freshness cutoff:} the 3-month threshold was set a priori. Sensitivity analysis (Appendix~\ref{app:fresh}) shows IC at 1-month cutoff is $3\times$ higher; the optimal cutoff for risk-adjusted backtest performance remains untested.
     \item \textbf{Transaction costs:} 0.2\% one-way is conservative for large-caps but may underestimate costs for smaller names. Sensitivity analysis (Appendix~\ref{app:costs}) shows FinBERT-only remains profitable up to 0.4\% one-way.
-    \item \textbf{JKP comparison:} JKP-only uses the full CRSP universe while FinBERT models use the freshness-filtered sub-universe; this partially confounds cross-model comparisons.
+    \item \textbf{JKP comparison:} JKP-only is evaluated on a broader universe (40,872 test obs.) since it does not require earnings calls; FinBERT models require a recent call ($\leq$3 months) and, for delta features, at least two consecutive calls (36,901 test obs.). This partially confounds cross-model comparisons.
     \item \textbf{FinBERT context window:} the 512-token limit requires chunking; very long Q\&A sections may lose information in later chunks.
 \end{enumerate}

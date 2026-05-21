@@ -315,9 +315,9 @@ def fig_rolling_12m():
 
 def fig_ablation():
     # XGBoost models — Rank IC = monthly cross-sectional Spearman
-    # JKP-only IC = 0 (NaN: within-month constant predictions; shown as 0 with label)
-    xgb_models  = ["JKP only\n(n/a)", "FinBERT only", "JKP+FinBERT\n(25% months)", "JKP+FinBERT ×10"]
-    xgb_ic      = [0.000,  0.0324,  0.0230, -0.0047]
+    # JKP-only IC is None (NaN: within-month constant predictions, IC undefined)
+    xgb_models  = ["JKP only\n(NaN)", "FinBERT only", "JKP+FinBERT\n(25% months)", "JKP+FinBERT ×10"]
+    xgb_ic      = [None,   0.0324,  0.0230, -0.0047]
     xgb_net     = [-4.50,  11.40,   0.49,   -8.53]
     xgb_sharpe  = [-0.361,  0.788,  0.039,  -0.523]
     xgb_colors  = [RED, GREEN, BLUE, ORANGE]
@@ -329,11 +329,11 @@ def fig_ablation():
     dl_sharpe   = [0.576,  -0.871, -0.146,  0.139]
     PURPLES     = ["#7B2D8B", "#B05CC4", "#C490D0", "#DDB9E6"]
 
-    fig = plt.figure(figsize=(16, 10))
-    gs  = fig.add_gridspec(2, 3, hspace=0.45, wspace=0.35)
+    fig = plt.figure(figsize=(14, 8))
+    gs  = fig.add_gridspec(2, 3, hspace=0.52, wspace=0.35)
 
     metrics = [
-        ("Rank IC (test)",      xgb_ic,    dl_ic,    "Rank IC (Spearman)", 0.005),
+        ("Rank IC (test)",      xgb_ic,    dl_ic,    "Monthly Rank IC", 0.005),
         ("Net Return (%) LS-D", xgb_net,   dl_net,   "Ann. Net Return (%)", 0.5),
         ("Sharpe (net)",        xgb_sharpe,dl_sharpe,"Sharpe Ratio (net)",  0.05),
     ]
@@ -344,23 +344,33 @@ def fig_ablation():
             (dvals, dl_models,  PURPLES,    "Deep Learning"),
         ]):
             ax = fig.add_subplot(gs[row, col])
-            bars = ax.bar(models, vals, color=colors, alpha=0.85,
+            plot_vals = [0 if v is None else v for v in vals]
+            bars = ax.bar(models, plot_vals, color=colors, alpha=0.85,
                           edgecolor="white", linewidth=0.5, width=0.6)
             ax.axhline(0, color="black", linewidth=0.8)
             ax.set_ylabel(ylabel if col == 0 else "")
             ax.set_title(f"{label} — {title}", fontsize=9.5, pad=4)
             ax.tick_params(axis="x", labelsize=8)
-            for bar, val in zip(bars, vals):
-                va  = "bottom" if val >= 0 else "top"
-                ytx = (bar.get_height() + offset) if val >= 0 else (bar.get_height() - offset)
-                ax.text(bar.get_x() + bar.get_width()/2, ytx,
-                        f"{val:.3f}" if "IC" in title else f"{val:.2f}",
-                        ha="center", va=va, fontsize=7.5, fontweight="bold")
+            for i, (bar, val) in enumerate(zip(bars, vals)):
+                if val is None:
+                    bar.set_hatch("///")
+                    bar.set_edgecolor(GRAY)
+                    bar.set_alpha(0.4)
+                    ax.text(bar.get_x() + bar.get_width()/2, offset,
+                            "NaN", ha="center", va="bottom", fontsize=8,
+                            fontweight="bold", color=GRAY)
+                else:
+                    va  = "bottom" if val >= 0 else "top"
+                    ytx = (bar.get_height() + offset) if val >= 0 else (bar.get_height() - offset)
+                    ax.text(bar.get_x() + bar.get_width()/2, ytx,
+                            f"{val:.3f}" if "IC" in title else f"{val:.2f}",
+                            ha="center", va=va, fontsize=7.5, fontweight="bold")
 
-    fig.suptitle("Ablation Study: XGBoost vs. Deep Learning (Out-of-Sample 2019–2023)\n"
-                 "Top row: XGBoost variants  |  Bottom row: PyTorch DL models  "
-                 "| Rank IC = monthly cross-sectional Spearman",
-                 fontsize=11, y=1.01)
+    fig.suptitle(
+        "Ablation Study: XGBoost vs. Deep Learning (Out-of-Sample 2019–2023)\n"
+        "Top row: XGBoost variants  |  Bottom row: PyTorch DL models\n"
+        "Rank IC = monthly cross-sectional Spearman  |  NaN = within-month constant predictions",
+        fontsize=10, y=1.03)
     save("fig7_ablation.pdf")
 
 

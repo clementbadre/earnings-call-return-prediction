@@ -25,6 +25,13 @@
 \usepackage{microtype}
 \setlength{\parindent}{0pt}
 
+% --- Float spacing ---
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\floatsep}{8pt plus 2pt minus 2pt}
+\setlength{\intextsep}{8pt plus 2pt minus 2pt}
+\setlength{\abovecaptionskip}{4pt}
+\setlength{\belowcaptionskip}{2pt}
+
 % --- Couleur EPFL ---
 \definecolor{EPFLred}{RGB}{213, 0, 50}
 \definecolor{lightgray}{RGB}{245, 245, 245}
@@ -35,10 +42,12 @@
 % --- Style des titres ---
 \titleformat{\section}
   {\large\bfseries}
-  {\thesection}{1em}{\vspace{0.3em}}
+  {\thesection}{1em}{}
+\titlespacing{\section}{0pt}{8pt plus 2pt minus 2pt}{4pt plus 1pt}
 
 \titleformat{\subsection}
   {\bfseries}{\thesubsection}{1em}{}
+\titlespacing{\subsection}{0pt}{6pt plus 2pt minus 2pt}{3pt plus 1pt}
 
 % --- Header & Footer ---
 \pagestyle{fancy}
@@ -62,33 +71,27 @@
 \section{Introduction}
 \pagenumbering{arabic}
 \input{1-introduction}
-\newpage
 
 \section{Data}
 \input{2-data}
-\newpage
 
 \section{Methodology}
 \input{3-methodology}
-\newpage
 
 \section{Results}
 \input{4-results}
-\newpage
 
 \section{Discussion}
 \label{sec:discussion}
 \input{5-discussion}
-\newpage
 
 \section{Conclusion}
 \input{6-conclusion}
-\newpage
 
 \bibliographystyle{abbrv}
 \bibliography{references}
 
-\newpage
+\clearpage
 \input{A-appendix}
 
 \end{document}

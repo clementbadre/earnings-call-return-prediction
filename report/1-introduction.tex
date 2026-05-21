@@ -6,7 +6,7 @@ We address this question using FinBERT \cite{araci2019} sentiment scores from 34
 
 \begin{enumerate}[noitemsep]
     \item \textbf{A fresh FinBERT signal:} freshness filter ($\leq 3$ months), quarter-over-quarter delta features, and cross-sectional z-scoring. A preprocessing ablation shows each step is necessary; cross-sectional z-scoring is the most impactful for portfolio performance.
-    \item \textbf{Model comparison:} XGBoost and a PyTorch MLP on identical feature sets, plus sequence models (LSTM, Transformer). The MLP confirms the signal is mildly non-linear; sequence models do not generalise across regimes.
+    \item \textbf{Model comparison:} XGBoost and a PyTorch MLP on identical feature sets, plus sequence models (LSTM, Transformer). MLP results are consistent with a mildly non-linear signal; sequence models do not generalise across regimes.
     \item \textbf{Economic evaluation:} long-short decile backtests with 0.2\% one-way transaction costs, multi-period robustness, and a 108-month IC $t$-test.
 \end{enumerate}
 
