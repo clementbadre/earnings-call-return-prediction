@@ -10,11 +10,11 @@ where $\text{sprtrn}_t$ is the S\&P500 return. Raw returns are winsorised at the
 
 We use 153 long-short factor portfolio returns from \cite{jkp2023} (momentum, value, quality, profitability, investment, low-risk). These are monthly time-series signals: each factor takes the same value for all stocks in a given month. \textbf{Design choice:} JKP factor returns for period $t$ are realised over the same interval as CRSP returns; using them contemporaneously would be look-ahead. We lag them by one month before merging, so the vector at $t-1$ is used to predict CRSP return at $t$.
 
-This lagging implies that JKP features encode \textit{market-level} information about recent factor performance. They may help with time-series allocation or regime identification, but they do not vary \textit{across firms} within a given month and are therefore not naturally suited to cross-sectional stock selection.
+This lagging implies that JKP features encode \textit{market-level} information about recent factor performance. They may help with time-series allocation or regime identification, but they do not vary \textit{across firms} within a given month and are therefore not naturally suited to cross-sectional stock selection. JKP factor returns are included here as a deliberately simple time-series benchmark, not as firm-level characteristics; any underperformance in our cross-sectional setup reflects a structural mismatch by design, not a shortcoming of the JKP factor library.
 
 \subsection{Earnings Calls and FinBERT Inference}
 
-We obtained 34,643 earnings call transcripts matched to CRSP firms by PERMNO. We extract the Q\&A section (most forward-looking), chunk into 512-token segments, and score each chunk with \texttt{ProsusAI/finbert} \cite{araci2019}, a RoBERTa model fine-tuned on financial text. Each call yields three probabilities averaged over chunks: $p_\text{pos}$, $p_\text{neg}$, $p_\text{neu}$ (summing to unity). Calls with fewer than 100 words are excluded. Inference details and score distributions are in Appendix~A.
+We obtained 34,643 earnings call transcripts matched to CRSP firms by PERMNO. We extract the Q\&A section (most forward-looking), chunk into 512-token segments, and score each chunk with \texttt{ProsusAI/finbert} \cite{araci2019}, a BERT-based model fine-tuned on financial text. Each call yields three probabilities averaged over chunks: $p_\text{pos}$, $p_\text{neg}$, $p_\text{neu}$ (summing to unity). Calls with fewer than 100 words are excluded. Inference details and score distributions are in Appendix~A.
 
 \subsection{Feature Engineering}
 

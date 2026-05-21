@@ -16,6 +16,7 @@ Runtime: ~2-4h on MacBook Pro M4 (MPS backend).
 Run once and save — never needs to be re-executed.
 """
 
+import os
 import re
 import pandas as pd
 import numpy as np
@@ -24,8 +25,9 @@ import torch.nn.functional as F
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from tqdm import tqdm
 
-RAW_PATH = "../sm-calls_with_connectors.parquet"
-OUT_PATH = "../outputs/finbert_scores.parquet"
+ROOT     = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RAW_PATH = os.path.join(ROOT, "sm-calls_with_connectors.parquet")
+OUT_PATH = os.path.join(ROOT, "outputs", "finbert_scores.parquet")
 
 MODEL_NAME  = "ProsusAI/finbert"
 CHUNK_SIZE  = 512

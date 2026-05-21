@@ -5,7 +5,7 @@ Table~\ref{tab:preproc} isolates the contribution of each preprocessing step. Ra
 
 \begin{table}[H]
 \centering
-\caption{Preprocessing ablation --- FinBERT XGBoost, LS Decile, out-of-sample 2019--2023. Rank IC is the mean monthly cross-sectional Spearman. The full-setup row uses the saved FinBERT-only model predictions (identical pipeline to Table~\ref{tab:backtest}).}
+\caption{Preprocessing ablation: FinBERT XGBoost, long-short decile, out-of-sample 2019--2023. Rank IC is the mean monthly cross-sectional Spearman. The full-setup row uses the saved FinBERT-only predictions (identical pipeline to Table~\ref{tab:backtest}).}
 \label{tab:preproc}
 \setlength{\tabcolsep}{6pt}
 \begin{tabular}{llrrrr}
@@ -29,7 +29,7 @@ Table~\ref{tab:ablation} reports out-of-sample metrics on the 2019--2023 test se
 
 \begin{table}[H]
 \centering
-\caption{Unified ablation study --- out-of-sample 2019--2023 (LS Decile, 0.2\% one-way transaction costs). \textbf{Rank IC} = mean monthly cross-sectional Spearman correlation (defined only in months where predictions vary across stocks). $\dagger$: defined in 25\% of months only (JKP features dominate and produce constant predictions in 75\% of months).}
+\caption{Unified ablation, out-of-sample 2019--2023 (long-short decile, 0.2\% one-way costs). \textbf{Rank IC}: mean monthly cross-sectional Spearman, defined only where predictions vary across stocks. $\dagger$: defined in 25\% of months only; JKP features produce within-month constant predictions in the remaining 75\%.}
 \label{tab:ablation}
 \setlength{\tabcolsep}{5pt}
 \begin{tabular}{llrrrr}
@@ -52,7 +52,7 @@ Table~\ref{tab:ablation} reports out-of-sample metrics on the 2019--2023 test se
 \end{tabular}
 \end{table}
 
-Three patterns are consistent across families. \textbf{(1) Cross-sectional FinBERT signal is exploitable:} FinBERT-only XGBoost (IC 0.032, Sharpe 0.79) and MLP\textsubscript{FinBERT} (IC 0.025, Sharpe 0.58) both deliver positive risk-adjusted returns; XGBoost dominates on both metrics. \textbf{(2) JKP structural mismatch is consistent across model families:} JKP-only predictions are within-month constant (monthly IC undefined); JKP+FinBERT is constant in 75\% of months; JKP+FinBERT$\times$10 achieves IC $-0.005$ despite high global-IC (inflated by cross-month variation). \textbf{(3) Non-linearity matters:} Ridge on the same features yields IC 0.002 and Sharpe $-0.10$, suggesting the exploitable component is not well captured by a linear specification, while both XGBoost and MLP extract positive signal.
+Three observations hold across model families. First, the cross-sectional FinBERT signal is exploitable: FinBERT-only XGBoost (IC 0.032, Sharpe 0.79) and MLP\textsubscript{FinBERT} (IC 0.025, Sharpe 0.58) both generate positive risk-adjusted returns, with XGBoost stronger on both metrics. Second, the JKP structural mismatch appears across all families: JKP-only predictions are within-month constant (monthly IC undefined), JKP+FinBERT is constant in 75\% of months, and JKP+FinBERT$\times$10 achieves IC $-0.005$ despite a high global IC inflated by cross-month variation. Third, Ridge on the same features yields IC 0.002 and Sharpe $-0.10$, suggesting the signal is not well captured by a linear specification, whereas both XGBoost and MLP extract positive signal.
 
 \subsection{Backtest Performance}
 
@@ -60,7 +60,7 @@ Table~\ref{tab:backtest} reports full backtest metrics for all models.
 
 \begin{table}[H]
 \centering
-\caption{Backtest results --- LS Decile, out-of-sample 2019--2023, net of 0.2\% one-way transaction costs.}
+\caption{Backtest results, long-short decile, out-of-sample 2019--2023, net of 0.2\% one-way transaction costs.}
 \label{tab:backtest}
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{lrrrrrr}
@@ -81,7 +81,7 @@ Attention\textsubscript{FinBERT} & $+4.02\%$ & $+2.21\%$ & $0.14$ & $+1.82\%$ & 
 \end{tabular}
 \end{table}
 
-FinBERT-only XGBoost (Sharpe 0.79, Alpha $+10.6\%$) and MLP\textsubscript{FinBERT} (Sharpe 0.58, Alpha $+6.2\%$) are the only two models with both positive monthly IC and positive net returns. XGBoost achieves both higher IC (0.032 vs 0.025) and higher Sharpe, making it the stronger trading model within our framework; MLP\textsubscript{FinBERT} nonetheless corroborates that the signal is not an artefact of a single model class. Sequence models (LSTM, Attention) are discussed in Section~\ref{sec:disc}. The Attention model's positive net return ($+2.21\%$) despite negative monthly IC ($-0.013$) is explained by compounding: very strong early performance (2019--2020 Sharpe $>$1.0) offsets sustained 2021--2023 losses in dollar-weighted terms even as the equal-weight average IC turns negative.
+FinBERT-only XGBoost (Sharpe 0.79, Alpha $+10.6\%$) and MLP\textsubscript{FinBERT} (Sharpe 0.58, Alpha $+6.2\%$) are the only two models with both positive monthly IC and positive net returns. XGBoost achieves both higher IC (0.032 vs 0.025) and higher Sharpe, making it the stronger model in our setup; the MLP result shows the signal is not specific to a single model class. Sequence models (LSTM, Attention) are discussed in Section~\ref{sec:disc}. The Attention model's positive net return ($+2.21\%$) despite negative monthly IC ($-0.013$) is explained by compounding: very strong early performance (2019--2020 Sharpe $>$1.0) offsets sustained 2021--2023 losses in dollar-weighted terms even as the equal-weight average IC turns negative.
 
 \begin{figure}[H]
     \centering
@@ -92,6 +92,6 @@ FinBERT-only XGBoost (Sharpe 0.79, Alpha $+10.6\%$) and MLP\textsubscript{FinBER
 
 \subsection{Signal Persistence and Robustness}
 
-\textbf{Rolling-window IC (108 months).} Using the model trained on 2008--2014 and predicting over 2015--2023, FinBERT-only achieves mean monthly IC 0.0214, positive in 62\% of months, IC $t$-statistic 2.67 ($p < 0.01$). JKP-only yields undefined monthly IC (within-month constant predictions). Full rolling results are in Appendix~E.
+\textbf{Post-training IC path (108 months).} Using the model trained on 2008--2014 with early stopping monitored on 2015--2018, we evaluate the full 2015--2023 post-training prediction path. FinBERT-only achieves mean monthly IC 0.0290, positive in 68\% of months, and IC $t$-statistic 3.79. Because 2015--2018 is also the early-stopping window, the formal untouched test period remains 2019--2023; the 108-month path is used as a persistence diagnostic. JKP-only yields undefined monthly IC (within-month constant predictions). Full rolling results are in Appendix~E.
 
 \textbf{Sub-period performance.} FinBERT-only is profitable in all three sub-periods: pre-COVID 2019 ($+3.87\%$, Sharpe 0.50), COVID 2020 ($+14.99\%$, Sharpe 0.77), and post-COVID 2021--2023 ($+12.65\%$, Sharpe 0.87). The strongest sub-period is \textit{after} the COVID-19 shock, suggesting performance is not driven by a single episode. Transaction cost sensitivity ($0.1\%$--$0.4\%$ one-way) is reported in Appendix~D.

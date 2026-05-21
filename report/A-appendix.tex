@@ -30,7 +30,7 @@ All DL models use Adam ($\ell_r = 10^{-3}$, weight decay $10^{-4}$, batch size 5
 
 \begin{table}[H]
 \centering
-\caption{Freshness cutoff sensitivity --- JKP + FinBERT XGBoost, out-of-sample global Rank IC (Spearman across all stock-month pairs). Shown for relative comparison; absolute values are not comparable to monthly cross-sectional IC in the main tables.}
+\caption{Freshness cutoff sensitivity: JKP + FinBERT XGBoost, global Rank IC (Spearman across all stock-month pairs). Values are shown for relative comparison only and are not comparable to the monthly cross-sectional IC in the main tables.}
 \label{tab:freshness}
 \begin{tabular}{crrrr}
 \toprule
@@ -43,14 +43,14 @@ $\leq 3$ months & 40{,}696 & 36{,}901 & $0.051$ \\
 \end{tabular}
 \end{table}
 
-The 1-month cutoff yields IC of 0.144 --- $3\times$ higher than the 3-month cutoff. The signal decays rapidly: the information advantage dissipates within 2--3 months, consistent with gradual price discovery \cite{hong2000}.
+The 1-month cutoff yields IC of 0.144, roughly $3\times$ the 3-month value. The signal decays rapidly: the information advantage dissipates within 2--3 months, consistent with gradual price discovery \cite{hong2000}.
 
 \subsection*{D. Transaction Cost Sensitivity}
 \label{app:costs}
 
 \begin{table}[H]
 \centering
-\caption{Transaction cost sensitivity --- LS Decile, 2019--2023.}
+\caption{Transaction cost sensitivity: long-short decile, 2019--2023.}
 \label{tab:costs}
 \setlength{\tabcolsep}{7pt}
 \begin{tabular}{lrrrrrrrr}

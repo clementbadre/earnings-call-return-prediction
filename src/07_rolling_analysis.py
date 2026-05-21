@@ -1,8 +1,9 @@
 """
 Rolling window robustness analysis — FinBERT_only signal.
 
-Extends predictions to the full 2015-2023 out-of-sample window
-(validation + test) using the model trained on 2008-2014.
+Extends predictions to the full 2015-2023 post-training window using the
+same model-selection protocol as the main pipeline: train on 2008-2014,
+early stop on 2015-2018, then report the complete post-training IC path.
 
 Outputs:
   1. Month-by-month Rank IC for each model
@@ -50,17 +51,17 @@ def load_and_split(features: list[str]):
     df = df.dropna(subset=DELTA_COLS).copy()
 
     train = df[df["MthCalDt"] <= TRAIN_END]
-    oos   = df[df["MthCalDt"] >  TRAIN_END]   # val + test combined
+    # val is used only for early stopping, mirroring 05_models.py.
+    val   = df[(df["MthCalDt"] > TRAIN_END) & (df["MthCalDt"] <= VAL_END)]
+    # Evaluated path includes validation + test months. We label it
+    # "post-training" rather than pure test because 2015-2018 monitors
+    # early stopping.
+    oos   = df[df["MthCalDt"] > TRAIN_END]
 
-    X_train = train[features].values
-    y_train = train["excess_ret"].values
-    X_val   = oos[features].values
-    y_val   = oos["excess_ret"].values
-
-    scaler  = StandardScaler().fit(X_train)
-    return (scaler.transform(X_train), y_train,
-            scaler.transform(X_val),   y_val,
-            oos[["PERMNO", "MthCalDt", "excess_ret"]])
+    scaler  = StandardScaler().fit(train[features].values)
+    return (scaler.transform(train[features].values), train["excess_ret"].values,
+            scaler.transform(val[features].values),   val["excess_ret"].values,
+            scaler.transform(oos[features].values),   oos[["PERMNO", "MthCalDt", "excess_ret"]])
 
 
 def train_model(X_train, y_train, X_val, y_val, features: list[str],
@@ -172,8 +173,8 @@ def main():
 
     for name, features, fw in configs:
         print(f"\nTraining {name} ({len(features)} features)...")
-        X_tr, y_tr, X_oos, y_oos, meta = load_and_split(features)
-        model = train_model(X_tr, y_tr, X_oos, y_oos, features, fw)
+        X_tr, y_tr, X_val, y_val, X_oos, meta = load_and_split(features)
+        model = train_model(X_tr, y_tr, X_val, y_val, features, fw)
         preds = predict(model, X_oos, features)
 
         pred_df = meta.copy()
