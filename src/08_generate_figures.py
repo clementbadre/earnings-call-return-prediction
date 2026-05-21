@@ -141,6 +141,7 @@ def fig_monthly_ic():
     # Top: FinBERT monthly IC with 12M rolling mean
     ax = axes[0]
     ic = ic_df["FinBERT_only"].dropna()
+    ic_tstat = ic.mean() / (ic.std() / np.sqrt(len(ic)))
     ax.bar(ic.index, ic.values, width=20,
            color=[GREEN if v > 0 else RED for v in ic.values], alpha=0.7)
     roll12 = ic.rolling(12).mean()
@@ -149,7 +150,7 @@ def fig_monthly_ic():
     ax.axhline(0, color="black", linewidth=0.8)
     ax.axhline(ic.mean(), color=BLUE, linestyle="--", linewidth=1,
                label=f"Overall mean = {ic.mean():.4f}")
-    ax.set_title(f"FinBERT_only: Monthly Rank IC (2015–2023)  |  t-stat = 2.67  |  "
+    ax.set_title(f"FinBERT_only: Monthly Rank IC (2015–2023)  |  t-stat = {ic_tstat:.2f}  |  "
                  f"{(ic>0).mean()*100:.0f}% positive months")
     ax.set_ylabel("Rank IC (Spearman)")
     ax.legend(frameon=False, loc="upper left")
