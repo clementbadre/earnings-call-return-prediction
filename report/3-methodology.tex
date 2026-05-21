@@ -13,10 +13,10 @@ Shared hyperparameters: 500 estimators, early stopping at 30 rounds on validatio
 
 \textbf{Deep learning models (PyTorch).} To verify that the signal generalises beyond a single model class, we train:
 \begin{enumerate}[noitemsep]
-    \item \textbf{MLP\textsubscript{FinBERT}}: fully-connected MLP on the 12 FinBERT features. Architecture and training details in Appendix~\ref{app:dl}.
+    \item \textbf{MLP\textsubscript{FinBERT}}: fully-connected MLP on the 12 FinBERT features. Architecture and training details in Appendix~B.
     \item \textbf{MLP\textsubscript{JKP+FinBERT}}: MLP on all 165 features (neural-network equivalent of combined XGBoost).
-    \item \textbf{LSTM\textsubscript{FinBERT}}: two-layer LSTM on the temporal sequence of the last 8 quarterly calls (Appendix~\ref{app:dl}).
-    \item \textbf{Attention\textsubscript{FinBERT}}: Pre-LN Transformer encoder on the same 8-step sequence (Appendix~\ref{app:dl}).
+    \item \textbf{LSTM\textsubscript{FinBERT}}: two-layer LSTM on the temporal sequence of the last 8 quarterly calls (Appendix~B).
+    \item \textbf{Attention\textsubscript{FinBERT}}: Pre-LN Transformer encoder on the same 8-step sequence (Appendix~B).
 \end{enumerate}
 All DL models use Adam ($\ell_r = 10^{-3}$), early stopping on validation Rank IC (patience 15, max 150 epochs), and Apple M4 MPS backend.
 

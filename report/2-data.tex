@@ -14,7 +14,7 @@ This lagging implies that JKP features encode \textit{market-level} information 
 
 \subsection{Earnings Calls and FinBERT Inference}
 
-We obtained 34,643 earnings call transcripts matched to CRSP firms by PERMNO. We extract the Q\&A section (most forward-looking), chunk into 512-token segments, and score each chunk with \texttt{ProsusAI/finbert} \cite{araci2019}, a RoBERTa model fine-tuned on financial text. Each call yields three probabilities averaged over chunks: $p_\text{pos}$, $p_\text{neg}$, $p_\text{neu}$ (summing to unity). Calls with fewer than 100 words are excluded. Inference details and score distributions are in Appendix~\ref{app:finbert}.
+We obtained 34,643 earnings call transcripts matched to CRSP firms by PERMNO. We extract the Q\&A section (most forward-looking), chunk into 512-token segments, and score each chunk with \texttt{ProsusAI/finbert} \cite{araci2019}, a RoBERTa model fine-tuned on financial text. Each call yields three probabilities averaged over chunks: $p_\text{pos}$, $p_\text{neg}$, $p_\text{neu}$ (summing to unity). Calls with fewer than 100 words are excluded. Inference details and score distributions are in Appendix~A.
 
 \subsection{Feature Engineering}
 
