@@ -57,12 +57,21 @@ We train five models targeting $r^e_{i,t}$:
 \end{enumerate}
 All XGBoost models share the same hyperparameters: 500 estimators, early stopping at 30 rounds (validation RMSE), learning rate 0.05, max depth 4, subsampling 0.8, $L_2$ regularisation 1.0.
 
-\textbf{Deep learning: MLP (PyTorch).}
-To satisfy the deep-learning requirement of the assignment, we train a fully-connected multi-layer perceptron (MLP) from scratch on the 12 FinBERT sentiment features. The architecture is:
-\[
-\text{Input}(12) \;\to\; \text{Linear}(64) \to \text{BN} \to \text{ReLU} \to \text{Dropout}(0.3) \;\to\; \text{Linear}(32) \to \text{BN} \to \text{ReLU} \to \text{Dropout}(0.3) \;\to\; \text{Linear}(1)
-\]
-Training uses Adam ($\ell_r = 10^{-3}$, weight decay $10^{-4}$, batch size 512), with early stopping on validation Rank IC (patience 15 epochs, maximum 150). The Apple M4 MPS backend accelerates GPU training. This model provides a direct deep-learning benchmark on the FinBERT signal, independent of gradient-boosted trees.
+\textbf{Deep learning models (four PyTorch models).}
+To compare gradient-boosted trees against neural networks on the same signal, we train four DL models from scratch:
+
+\begin{enumerate}[noitemsep]
+    \item \textbf{MLP\textsubscript{FinBERT}}: fully-connected MLP on the 12 FinBERT features.
+          Architecture: $12 \to 64 \to \text{BN} \to \text{ReLU} \to \text{Drop}(0.3) \to 32 \to \text{BN} \to \text{ReLU} \to \text{Drop}(0.3) \to 1$.
+    \item \textbf{MLP\textsubscript{JKP+FinBERT}}: MLP on all 165 features (JKP + FinBERT), neural-network equivalent of the combined XGBoost model.
+          Architecture: $165 \to 128 \to \text{BN} \to \text{ReLU} \to \text{Drop}(0.3) \to 64 \to \text{BN} \to \text{ReLU} \to \text{Drop}(0.3) \to 1$.
+    \item \textbf{LSTM\textsubscript{FinBERT}}: two-layer LSTM operating on the temporal sequence of the last 8 quarterly earnings-call scores $(p_\text{pos}, p_\text{neg}, p_\text{neu})$ per firm. The final hidden state is mapped to a scalar return prediction via a linear head.
+          Architecture: $\text{LSTM}(3 \to 32, \text{2 layers}) \to \text{Drop}(0.3) \to \text{Linear}(32 \to 1)$.
+    \item \textbf{Attention\textsubscript{FinBERT}}: Transformer encoder (Pre-LN, 2 layers, 4 heads, $d=32$) on the same 8-step sequence. A learnable positional encoding is added; a padding mask prevents attention to left-padded (zero) positions. Output is obtained by mean-pooling over non-padded timesteps.
+          Architecture: $\text{proj}(3 \to 32) + \text{PosEnc} \to 2 \times \text{EncoderLayer}(d{=}32, h{=}4, \text{ff}{=}64) \to \text{MeanPool} \to \text{Linear}(32 \to 1)$.
+\end{enumerate}
+
+All DL models are trained with Adam ($\ell_r = 10^{-3}$, weight decay $10^{-4}$, batch size 512, gradient clipping 1.0), with early stopping on validation Rank IC (patience 15, maximum 150 epochs) and a \texttt{ReduceLROnPlateau} scheduler (factor 0.5, patience 5). The Apple M4 MPS backend is used for GPU-accelerated training. Sequences for LSTM/Attention are left-padded with zeros for firms with fewer than 8 prior calls; all calls are strictly before the prediction date to prevent look-ahead bias.
 
 \subsection{Evaluation Metrics}
 

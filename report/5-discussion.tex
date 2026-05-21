@@ -17,6 +17,18 @@ Adding JKP features to FinBERT reduces out-of-sample net performance despite imp
 
 The feature-weighting approach ($\times$10) partially recovers global Rank IC (0.072), but backtest performance remains negative ($-8.5\%$ net). This reveals that the improved global IC reflects inflated time-series variance rather than better cross-sectional discrimination. Artificially forcing FinBERT features into more splits leads the model to overfit idiosyncratic call-level patterns that do not aggregate into stable portfolios.
 
+\subsection{XGBoost vs.\ Deep Learning: When Does DL Win?}
+
+The unified ablation table reveals a nuanced picture of gradient-boosted trees versus neural networks on the same prediction task.
+
+\textbf{(a) MLP captures mild non-linearities.} On the identical 12 FinBERT features, MLP\textsubscript{FinBERT} achieves Rank IC 0.013 versus XGBoost FinBERT-only at 0.009 --- a 44\% relative improvement. Both deliver positive backtest performance (MLP $+7.87\%$ net, Sharpe 0.58 vs.\ XGBoost $+11.4\%$, Sharpe 0.79), confirming that the sentiment signal survives different model classes. The IC gap suggests that sentiment feature interactions (e.g., a strong positive call combined with high delta\_net) are slightly non-linear and that MLPs can exploit this where tree splits may miss it. The MLP's lower Sharpe despite higher IC reflects slightly higher turnover from more volatile decile composition.
+
+\textbf{(b) Temporal models fail out-of-sample.} LSTM\textsubscript{FinBERT} ($-0.040$ IC, $-2.31\%$ net) and Attention\textsubscript{FinBERT} ($-0.039$ IC, $+2.21\%$ net) are structurally disadvantaged: they must learn a temporal pattern from 8 sequential calls covering $\approx$2 years. Sub-period analysis reveals the mechanism: both models capture COVID-era sentiment dynamics well but fail to generalise --- the temporal signature of a ``good'' versus ``bad'' earnings sequence changes across market regimes. The static cross-sectional signal (how a firm's sentiment ranks against peers today) is more robust than the time-series pattern (how a firm's sentiment evolved over the past 2 years), precisely because cross-regime stationarity is weaker for the latter.
+
+\textbf{(c) JKP contamination is model-agnostic.} MLP\textsubscript{JKP+FinBERT} ($-0.016$ IC, $-12.9\%$ net) underperforms even more severely than its XGBoost counterpart. The within-month-constant JKP features introduce noise that gradient-boosted trees can partially ignore via regularisation, whereas deep network weights are more susceptible to distributional artifacts that corrupt the cross-sectional ranking objective.
+
+\textbf{Economic interpretation.} The DL comparison strengthens the main conclusion: the earnings-call sentiment signal contains mildly non-linear cross-sectional information, which both XGBoost and MLP exploit. The failure of LSTM and Attention models is itself informative --- it implies that the \textit{level} of sentiment at a given quarter, standardised against peers, matters more than the \textit{trajectory} of sentiment across quarters. This is consistent with \cite{huang2023}, who show that one-quarter delta beats multi-quarter history for return prediction.
+
 \subsection{Limitations}
 
 \begin{enumerate}[noitemsep]

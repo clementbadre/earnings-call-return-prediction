@@ -4,15 +4,18 @@ We build on this insight in a machine learning framework, combining textual sent
 
 \subsection{Contributions}
 
-We answer this question with a three-step approach:
+We answer this question with a four-step approach:
 \begin{enumerate}[noitemsep]
     \item \textbf{Feature engineering} addressing the two main pitfalls of sentiment signals: staleness (median signal age of 7 months in the raw data) and level effects (the market largely prices the sentiment level; only changes are informative).
-    \item \textbf{Ablation study} comparing JKP factors, FinBERT sentiment, and their combination using an XGBoost regression framework with a strict temporal split.
+    \item \textbf{Unified ablation study} comparing eight models --- four XGBoost variants and four PyTorch deep learning models (MLP, MLP on combined features, LSTM, Transformer) --- on the identical prediction task using a strict temporal split.
+    \item \textbf{XGBoost vs.\ deep learning comparison} as a central contribution: we show that a cross-sectional MLP on FinBERT features captures mild non-linearities and remains profitable, while temporal sequence models (LSTM, Attention) fail to generalise across market regimes.
     \item \textbf{Rigorous out-of-sample evaluation} with explicit transaction costs (0.2\% one-way), multi-period robustness checks, and a formal statistical test of signal persistence (Rank IC $t$-statistic over 108 months).
 \end{enumerate}
 
 \subsection{Main Findings}
 
-Our main finding is that \textbf{FinBERT sentiment, after freshness filtering and delta engineering, is the only statistically significant cross-sectional predictor} in our framework. The FinBERT-only long-short decile strategy yields $+11.4\%$ net annualised return with a Sharpe ratio of 0.79 over the 2019--2023 out-of-sample period. A rolling-window analysis over 108 months confirms a Rank IC $t$-statistic of 2.67 ($p < 0.01$), positive in 62\% of months, and stable across all market regimes including the post-COVID period.
+Our main finding is that \textbf{FinBERT sentiment, after freshness filtering and delta engineering, is the only statistically significant cross-sectional predictor} in our framework. The FinBERT-only XGBoost long-short decile strategy yields $+11.4\%$ net annualised return with a Sharpe ratio of 0.79 over the 2019--2023 out-of-sample period. A rolling-window analysis over 108 months confirms a Rank IC $t$-statistic of 2.67 ($p < 0.01$), positive in 62\% of months, and stable across all market regimes including the post-COVID period.
 
-In contrast, JKP quantitative factors --- identical for all stocks within a given month --- are structurally incapable of cross-sectional stock selection. They provide time-series market timing signals that are erased by high portfolio turnover and transaction costs.
+Our DL comparison reveals two further findings: (i) a cross-sectional MLP on the same FinBERT features achieves IC 0.013 versus XGBoost's 0.009, confirming mild non-linearities in sentiment interactions; (ii) LSTM and Transformer models that learn the \textit{temporal sequence} of earnings calls fail to generalise across regimes, underscoring that the relevant signal is the \textit{cross-sectional rank} of current sentiment, not its historical trajectory.
+
+In contrast, JKP quantitative factors --- identical for all stocks within a given month --- are structurally incapable of cross-sectional stock selection. They provide time-series market timing signals that are erased by high portfolio turnover and transaction costs. This finding holds for both tree-based and deep learning models.

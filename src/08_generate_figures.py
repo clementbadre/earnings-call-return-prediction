@@ -314,40 +314,51 @@ def fig_rolling_12m():
 # ── 7. Ablation study bar chart ────────────────────────────────────────────
 
 def fig_ablation():
-    data = {
-        "Model": ["JKP only", "FinBERT only", "JKP+FinBERT", "JKP+FinBERT ×10", "MLP (FinBERT)"],
-        "Rank IC (test)": [0.0342, 0.0089, 0.0505, 0.0720, 0.0129],
-        "Net Return % (LS decile)": [-4.50, 11.40, 0.49, -8.53, 7.87],
-        "Sharpe (net)": [-0.361, 0.788, 0.039, -0.523, 0.576],
-    }
-    df = pd.DataFrame(data)
+    # XGBoost models
+    xgb_models  = ["JKP only", "FinBERT only", "JKP+FinBERT", "JKP+FinBERT ×10"]
+    xgb_ic      = [0.0342,  0.0089,  0.0505,  0.0720]
+    xgb_net     = [-4.50,  11.40,   0.49,   -8.53]
+    xgb_sharpe  = [-0.361,  0.788,  0.039,  -0.523]
+    xgb_colors  = [RED, GREEN, BLUE, ORANGE]
 
-    fig, axes = plt.subplots(1, 3, figsize=(16, 5))
-    bar_colors = [RED, GREEN, BLUE, ORANGE, "#7B2D8B"]  # purple for MLP
+    # DL models
+    dl_models   = ["MLP\nFinBERT", "MLP\nJKP+FB", "LSTM\nFinBERT", "Attn\nFinBERT"]
+    dl_ic       = [0.0129, -0.0159, -0.0404, -0.0393]
+    dl_net      = [7.87,  -12.86,  -2.31,   2.21]
+    dl_sharpe   = [0.576,  -0.871, -0.146,  0.139]
+    PURPLES     = ["#7B2D8B", "#B05CC4", "#C490D0", "#DDB9E6"]
 
-    for ax, col, ylabel in zip(
-        axes,
-        ["Rank IC (test)", "Net Return % (LS decile)", "Sharpe (net)"],
-        ["Rank IC (Spearman)", "Annualized Net Return (%)", "Sharpe Ratio (net)"]
-    ):
-        bars = ax.bar(df["Model"], df[col], color=bar_colors, alpha=0.85,
-                      edgecolor="white", linewidth=0.5, width=0.6)
-        ax.axhline(0, color="black", linewidth=0.8)
-        ax.set_ylabel(ylabel)
-        ax.set_xticks(range(len(df)))
-        ax.set_xticklabels(df["Model"], rotation=22, ha="right", fontsize=9)
-        for bar, val in zip(bars, df[col]):
-            y = bar.get_height()
-            offset = 0.003 if col == "Rank IC (test)" else 0.3
-            va = "bottom" if val >= 0 else "top"
-            y_txt = (y + offset) if val >= 0 else (y - offset)
-            ax.text(bar.get_x() + bar.get_width()/2, y_txt,
-                    f"{val:.3f}" if col == "Rank IC (test)" else f"{val:.2f}",
-                    ha="center", va=va, fontsize=8.5, fontweight="bold")
+    fig = plt.figure(figsize=(16, 10))
+    gs  = fig.add_gridspec(2, 3, hspace=0.45, wspace=0.35)
 
-    fig.suptitle("Ablation Study: Model Comparison (Out-of-Sample 2019–2023)\n"
-                 "XGBoost (4 variants) + PyTorch MLP on FinBERT features", fontsize=12)
-    plt.tight_layout()
+    metrics = [
+        ("Rank IC (test)",      xgb_ic,    dl_ic,    "Rank IC (Spearman)", 0.005),
+        ("Net Return (%) LS-D", xgb_net,   dl_net,   "Ann. Net Return (%)", 0.5),
+        ("Sharpe (net)",        xgb_sharpe,dl_sharpe,"Sharpe Ratio (net)",  0.05),
+    ]
+
+    for col, (title, xvals, dvals, ylabel, offset) in enumerate(metrics):
+        for row, (vals, models, colors, label) in enumerate([
+            (xvals, xgb_models, xgb_colors, "XGBoost"),
+            (dvals, dl_models,  PURPLES,    "Deep Learning"),
+        ]):
+            ax = fig.add_subplot(gs[row, col])
+            bars = ax.bar(models, vals, color=colors, alpha=0.85,
+                          edgecolor="white", linewidth=0.5, width=0.6)
+            ax.axhline(0, color="black", linewidth=0.8)
+            ax.set_ylabel(ylabel if col == 0 else "")
+            ax.set_title(f"{label} — {title}", fontsize=9.5, pad=4)
+            ax.tick_params(axis="x", labelsize=8)
+            for bar, val in zip(bars, vals):
+                va  = "bottom" if val >= 0 else "top"
+                ytx = (bar.get_height() + offset) if val >= 0 else (bar.get_height() - offset)
+                ax.text(bar.get_x() + bar.get_width()/2, ytx,
+                        f"{val:.3f}" if "IC" in title else f"{val:.2f}",
+                        ha="center", va=va, fontsize=7.5, fontweight="bold")
+
+    fig.suptitle("Ablation Study: XGBoost vs. Deep Learning (Out-of-Sample 2019–2023)\n"
+                 "Top row: XGBoost variants  |  Bottom row: PyTorch DL models",
+                 fontsize=12, y=1.01)
     save("fig7_ablation.pdf")
 
 
