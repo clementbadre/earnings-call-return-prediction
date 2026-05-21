@@ -1,93 +1,34 @@
-\subsection{Pipeline Overview}
+\subsection{Models}
 
-Figure~\ref{fig:pipeline} summarises the full pipeline from raw data to backtest results.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\linewidth]{figures/fig9_pipeline.pdf}
-    \caption{End-to-end project pipeline. Each box represents a processing stage; italic text below each box describes the key design choice at that step.}
-    \label{fig:pipeline}
-\end{figure}
-
-\subsection{Feature Engineering}
-
-Beyond raw FinBERT scores, we construct the following features motivated by the finance NLP literature:
-
-\begin{table}[H]
-\centering
-\caption{Engineered FinBERT features. Delta features are NaN for a firm's first earnings call.}
-\label{tab:features}
-\setlength{\tabcolsep}{6pt}
-\begin{tabular}{>{\ttfamily}l p{9.5cm}}
-\toprule
-\normalfont\textbf{Feature} & \textbf{Definition and motivation} \\
-\midrule
-net\_sentiment      & $p_\text{pos} - p_\text{neg}$: signed directional signal \\
-sentiment\_strength & $1 - p_\text{neu}$: non-neutrality of the call \\
-delta\_net          & $\Delta\,\texttt{net\_sentiment}$ quarter-over-quarter --- captures earnings surprises \cite{huang2023} \\
-delta\_pos, delta\_neg & Quarter-over-quarter changes in individual sentiment components \\
-months\_since\_call & Signal freshness (1, 2 or 3 by construction after filter) \\
-*\_zscore           & Cross-sectional z-score within each prediction month for \texttt{net\_sentiment}, \texttt{delta\_net}, \texttt{delta\_pos} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Cross-sectional z-scoring removes time-varying means and scales, preventing the model from learning calendar effects that cannot be reproduced out-of-sample.
-
-\subsection{Temporal Train / Validation / Test Split}
-
-We apply a strict temporal split with no random shuffling:
-\begin{itemize}[noitemsep]
-    \item \textbf{Train}: January 2008 -- December 2014
-    \item \textbf{Validation} (early stopping only): January 2015 -- December 2018
-    \item \textbf{Test} (all reported metrics): January 2019 -- December 2023
-\end{itemize}
-A \texttt{StandardScaler} is fitted on the training set and applied to validation and test sets.
-
-\subsection{Models: Ablation Study}
-
-We train five models targeting $r^e_{i,t}$:
+We train five model families targeting $r^e_{i,t}$, sharing the same temporal split and feature sets.
 
 \textbf{XGBoost variants (four models).}
 \begin{enumerate}[noitemsep]
-    \item \textbf{JKP only}: 153 quantitative factor features.
-    \item \textbf{FinBERT only}: 12 sentiment features (Table~\ref{tab:features}).
+    \item \textbf{JKP only}: 153 lagged factor features.
+    \item \textbf{FinBERT only}: 12 sentiment features (Table~\ref{tab:features}). \textit{Primary model.}
     \item \textbf{JKP + FinBERT}: all 165 features.
-    \item \textbf{JKP + FinBERT $\times$10}: same 165 features but FinBERT columns receive $10\times$ higher sampling probability via XGBoost's \texttt{feature\_weights} parameter in \texttt{DMatrix}, biasing each split toward sentiment features.
+    \item \textbf{JKP + FinBERT $\times$10}: same 165 features, FinBERT columns weighted $10\times$ via \texttt{feature\_weights} in \texttt{DMatrix}.
 \end{enumerate}
-All XGBoost models share the same hyperparameters: 500 estimators, early stopping at 30 rounds (validation RMSE), learning rate 0.05, max depth 4, subsampling 0.8, $L_2$ regularisation 1.0.
+Shared hyperparameters: 500 estimators, early stopping at 30 rounds on validation RMSE, learning rate 0.05, max depth 4, subsample 0.8, $L_2$ regularisation 1.0, \texttt{random\_state=42}.
 
-\textbf{Deep learning models (four PyTorch models).}
-To compare gradient-boosted trees against neural networks on the same signal, we train four DL models from scratch:
-
+\textbf{Deep learning models (PyTorch).} To verify that the signal generalises beyond a single model class, we train:
 \begin{enumerate}[noitemsep]
-    \item \textbf{MLP\textsubscript{FinBERT}}: fully-connected MLP on the 12 FinBERT features.
-          Architecture: $12 \to 64 \to \text{BN} \to \text{ReLU} \to \text{Drop}(0.3) \to 32 \to \text{BN} \to \text{ReLU} \to \text{Drop}(0.3) \to 1$.
-    \item \textbf{MLP\textsubscript{JKP+FinBERT}}: MLP on all 165 features (JKP + FinBERT), neural-network equivalent of the combined XGBoost model.
-          Architecture: $165 \to 128 \to \text{BN} \to \text{ReLU} \to \text{Drop}(0.3) \to 64 \to \text{BN} \to \text{ReLU} \to \text{Drop}(0.3) \to 1$.
-    \item \textbf{LSTM\textsubscript{FinBERT}}: two-layer LSTM operating on the temporal sequence of the last 8 quarterly earnings-call scores $(p_\text{pos}, p_\text{neg}, p_\text{neu})$ per firm. The final hidden state is mapped to a scalar return prediction via a linear head.
-          Architecture: $\text{LSTM}(3 \to 32, \text{2 layers}) \to \text{Drop}(0.3) \to \text{Linear}(32 \to 1)$.
-    \item \textbf{Attention\textsubscript{FinBERT}}: Transformer encoder (Pre-LN, 2 layers, 4 heads, $d=32$) on the same 8-step sequence. A learnable positional encoding is added; a padding mask prevents attention to left-padded (zero) positions. Output is obtained by mean-pooling over non-padded timesteps.
-          Architecture: $\text{proj}(3 \to 32) + \text{PosEnc} \to 2 \times \text{EncoderLayer}(d{=}32, h{=}4, \text{ff}{=}64) \to \text{MeanPool} \to \text{Linear}(32 \to 1)$.
+    \item \textbf{MLP\textsubscript{FinBERT}}: fully-connected MLP on the 12 FinBERT features. Architecture and training details in Appendix~\ref{app:dl}.
+    \item \textbf{MLP\textsubscript{JKP+FinBERT}}: MLP on all 165 features (neural-network equivalent of combined XGBoost).
+    \item \textbf{LSTM\textsubscript{FinBERT}}: two-layer LSTM on the temporal sequence of the last 8 quarterly calls (Appendix~\ref{app:dl}).
+    \item \textbf{Attention\textsubscript{FinBERT}}: Pre-LN Transformer encoder on the same 8-step sequence (Appendix~\ref{app:dl}).
 \end{enumerate}
+All DL models use Adam ($\ell_r = 10^{-3}$), early stopping on validation Rank IC (patience 15, max 150 epochs), and Apple M4 MPS backend.
 
-All DL models are trained with Adam ($\ell_r = 10^{-3}$, weight decay $10^{-4}$, batch size 512, gradient clipping 1.0), with early stopping on validation Rank IC (patience 15, maximum 150 epochs) and a \texttt{ReduceLROnPlateau} scheduler (factor 0.5, patience 5). The Apple M4 MPS backend is used for GPU-accelerated training. Sequences for LSTM/Attention are left-padded with zeros for firms with fewer than 8 prior calls; all calls are strictly before the prediction date to prevent look-ahead bias.
+\textbf{Simple linear benchmark.} We additionally run a Ridge regression ($\alpha=1.0$) on the full 12 FinBERT features to test whether the signal requires non-linear modelling.
 
 \subsection{Evaluation Metrics}
 
 \begin{itemize}[noitemsep]
-    \item \textbf{$R^2$}: fraction of variance explained. Expected near zero for individual excess returns.
-    \item \textbf{Rank IC}: Spearman rank correlation between predicted and realised excess returns. The standard performance metric in cross-sectional equity research \cite{grinold1999}.
-    \item \textbf{IC $t$-statistic}: $\bar{\text{IC}} / (\sigma_\text{IC} / \sqrt{T})$ over monthly ICs --- tests whether the signal is statistically distinguishable from noise.
+    \item \textbf{Rank IC}: mean monthly Spearman correlation between predicted and realised excess returns, computed cross-sectionally within each month. This is the standard metric for cross-sectional equity prediction \cite{grinold1999}. We distinguish this from global Rank IC (Spearman across all stock-month pairs), which can be inflated by time-series variation.
+    \item \textbf{IC $t$-statistic}: $\bar{\text{IC}} / (\sigma_\text{IC} / \sqrt{T})$ over $T$ monthly ICs.
 \end{itemize}
 
 \subsection{Investment Strategies and Transaction Costs}
 
-Three equal-weighted strategies are implemented monthly:
-\begin{itemize}[noitemsep]
-    \item \textbf{LS Decile}: long top 10\%, short bottom 10\%.
-    \item \textbf{LS Quintile}: long top 20\%, short bottom 20\%.
-    \item \textbf{LO Decile}: long top 10\% only.
-\end{itemize}
-
-Transaction costs of \textbf{0.2\% one-way} (0.4\% round-trip) are applied on monthly turnover. We report annualised gross and net returns, Sharpe ratio, maximum drawdown, OLS alpha, and beta versus the S\&P500.
+Equal-weighted long-short decile strategy: long top 10\%, short bottom 10\%, rebalanced monthly. Transaction costs of \textbf{0.2\% one-way} (0.4\% round-trip) are applied on monthly turnover. We report annualised gross and net returns, Sharpe ratio, OLS alpha versus S\&P500, and average monthly turnover.

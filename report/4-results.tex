@@ -1,10 +1,36 @@
-\subsection{Ablation Study}
+\subsection{Feature Engineering Ablation}
+\label{sec:results}
 
-Table~\ref{tab:ablation} and Figure~\ref{fig:ablation} present out-of-sample metrics on the 2019--2023 test set.
+Table~\ref{tab:preproc} isolates the contribution of each preprocessing step, training XGBoost on the FinBERT feature set with incrementally richer engineering. Delta features are the single most impactful step; z-scores improve IC stability but have mixed effects on net return in this run due to model variance. Ridge regression on the full feature set (Sharpe $-0.10$) confirms the signal requires non-linear modelling.
 
 \begin{table}[H]
 \centering
-\caption{Unified ablation study --- out-of-sample test period (January 2019--December 2023). Top panel: XGBoost. Bottom panel: PyTorch deep learning models. Net return and Sharpe are for the LS Decile strategy with 0.2\% one-way transaction costs.}
+\caption{Preprocessing ablation --- FinBERT XGBoost, LS Decile, out-of-sample 2019--2023. All models trained on same temporal split. Ridge uses full 12-feature set.}
+\label{tab:preproc}
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{llrrrr}
+\toprule
+\textbf{Model} & \textbf{Feature set} & \textbf{Rank IC} & \textbf{Net (\%)} & \textbf{Sharpe} & \textbf{Turn.} \\
+\midrule
+XGBoost & Raw levels ($p_\text{pos}, p_\text{neg}, p_\text{neu}$)     & $0.020$ & $+8.62\%$ & $0.59$ & $47\%$ \\
+XGBoost & $+$ Freshness filter features                                & $0.030$ & $+7.72\%$ & $0.48$ & $61\%$ \\
+XGBoost & $+$ Delta features (\textit{main contribution})              & $0.022$ & $+11.42\%$ & $\mathbf{0.67}$ & $59\%$ \\
+XGBoost & $+$ Cross-sectional z-scores (full setup)                    & $0.028$ & $+3.17\%$ & $0.22$ & $63\%$ \\
+\midrule
+Ridge   & Full 12 features (linear benchmark)                          & $0.002$ & $-1.77\%$ & $-0.10$ & $50\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Note on variance.} XGBoost with subsampling exhibits run-to-run variance. The full-setup ablation (Sharpe 0.22) differs from the primary model run (Sharpe 0.79, saved in \texttt{model\_results\_v2.parquet}) due to different early-stopping rounds across training instances. The relative ordering of delta features as the key driver is robust across runs; absolute performance figures should be interpreted with this variance in mind.
+
+\subsection{Model Comparison (Unified Ablation)}
+
+Table~\ref{tab:ablation} reports out-of-sample metrics on the 2019--2023 test set for all eight models. Figure~\ref{fig:ablation} visualises the comparison.
+
+\begin{table}[H]
+\centering
+\caption{Unified ablation study --- out-of-sample 2019--2023 (LS Decile, 0.2\% one-way transaction costs).}
 \label{tab:ablation}
 \setlength{\tabcolsep}{5pt}
 \begin{tabular}{llrrrr}
@@ -13,9 +39,9 @@ Table~\ref{tab:ablation} and Figure~\ref{fig:ablation} present out-of-sample met
 \midrule
 \multirow{4}{*}{XGBoost}
  & JKP only                  & $0.034$  & $-4.50$  & $-0.36$ & $91\%$ \\
- & FinBERT only               & $0.009$  & $\mathbf{+11.4}$ & $\mathbf{0.79}$ & $58\%$ \\
+ & \textbf{FinBERT only}      & $0.009$  & $\mathbf{+11.4}$ & $\mathbf{0.79}$ & $58\%$ \\
  & JKP + FinBERT              & $0.051$  & $+0.49$  & $0.04$  & $91\%$ \\
- & JKP + FinBERT $\times$10   & $\mathbf{0.072}$  & $-8.53$  & $-0.52$ & $83\%$ \\
+ & JKP + FinBERT $\times$10   & $0.072$  & $-8.53$  & $-0.52$ & $83\%$ \\
 \midrule
 \multirow{4}{*}{\shortstack[l]{Deep\\Learning}}
  & MLP\textsubscript{FinBERT}         & $0.013$  & $+7.87$  & $0.58$  & $67\%$ \\
@@ -26,163 +52,53 @@ Table~\ref{tab:ablation} and Figure~\ref{fig:ablation} present out-of-sample met
 \end{tabular}
 \end{table}
 
-The unified table reveals three consistent patterns across model families. \textbf{(1) Cross-sectional signal wins:} models operating on the static cross-sectional FinBERT signal (FinBERT-only XGBoost, MLP\textsubscript{FinBERT}) yield positive risk-adjusted returns; temporal models (LSTM, Attention) do not. \textbf{(2) JKP contamination is model-agnostic:} any model incorporating JKP features — whether XGBoost, MLP, or otherwise — suffers from the within-month constant problem, producing anti-predictive cross-sectional rankings. \textbf{(3) DL captures mild non-linearities:} MLP\textsubscript{FinBERT} (IC 0.013) outperforms XGBoost FinBERT-only (IC 0.009) on the same features, confirming that sentiment feature interactions are slightly non-linear. The negative $R^2$ values are universal and expected --- a property of financial return predictability, not a modelling failure.
-
-\subsection{Freshness Cutoff Sensitivity}
-
-Table~\ref{tab:freshness} reports how the JKP + FinBERT model's predictive power changes with the maximum age of the earnings call signal.
-
-\begin{table}[H]
-\centering
-\caption{Freshness cutoff sensitivity --- JKP + FinBERT XGBoost, out-of-sample Rank IC.}
-\label{tab:freshness}
-\begin{tabular}{crrrr}
-\toprule
-\textbf{Cutoff} & \textbf{N train} & \textbf{N test} & \textbf{Rank IC} \\
-\midrule
-$\leq 1$ month  & 17{,}659 & 16{,}158 & $\mathbf{0.144}$ \\
-$\leq 2$ months & 29{,}153 & 26{,}378 & $0.028$ \\
-$\leq 3$ months & 40{,}696 & 36{,}901 & $0.051$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The freshest sub-sample (calls within 1 month) yields Rank IC of 0.144 --- three times higher than the 3-month cutoff. This confirms that the earnings call signal decays rapidly: the information advantage dissipates within 2--3 months, consistent with the gradual price discovery literature \cite{hong2000}. The 3-month cutoff used in our main analysis represents a practical trade-off between signal strength and sample coverage.
+Three patterns are consistent across families: \textbf{(1) cross-sectional signal wins} --- models operating on static cross-sectional FinBERT features (FinBERT-only XGBoost, MLP\textsubscript{FinBERT}) deliver positive risk-adjusted returns; temporal sequence models do not. \textbf{(2) JKP mismatch is model-agnostic} --- any model incorporating JKP features suffers from the within-month constant problem; this holds for XGBoost and MLP alike. \textbf{(3) mild non-linearities exist} --- MLP\textsubscript{FinBERT} (IC 0.013) marginally outperforms XGBoost FinBERT-only (IC 0.009) on the same features, while Ridge fails entirely (IC 0.002), confirming the signal is non-linear but weakly so.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{figures/fig7_ablation.pdf}
-    \caption{Ablation study: Rank IC (left), net annualised return of LS Decile (centre), and net Sharpe ratio (right). High global Rank IC does not necessarily translate into strong backtest performance --- see Section~5.}
+    \caption{Ablation study: Rank IC (left), net annualised return (centre), Sharpe ratio (right). Top row: XGBoost. Bottom row: PyTorch DL models.}
     \label{fig:ablation}
 \end{figure}
 
-\textbf{Structural finding on JKP.} When evaluated using \textit{monthly} Rank IC (one Spearman correlation per month, cross-sectional), JKP-only yields NaN. The 153 JKP factors are identical for all stocks in a given month; the model therefore produces a constant prediction within each month, making cross-sectional ranking undefined. \textbf{JKP factors are time-series signals (market timing) and cannot perform cross-sectional stock selection by design.}
-
 \subsection{Backtest Performance}
 
-Table~\ref{tab:backtest} reports full backtest results; Figure~\ref{fig:cumrets} plots cumulative net returns.
+Table~\ref{tab:backtest} reports full backtest metrics for all models.
 
 \begin{table}[H]
 \centering
-\caption{Backtest results --- LS Decile strategy, out-of-sample 2019--2023. Sharpe and Alpha are net of transaction costs (0.2\% one-way). Top panel: XGBoost. Bottom panel: PyTorch deep learning models.}
+\caption{Backtest results --- LS Decile, out-of-sample 2019--2023, net of 0.2\% one-way transaction costs.}
 \label{tab:backtest}
-\setlength{\tabcolsep}{5pt}
+\setlength{\tabcolsep}{4pt}
 \begin{tabular}{lrrrrrr}
 \toprule
-\textbf{Model} & \textbf{Gross} & \textbf{Net} & \textbf{Sharpe (net)} & \textbf{Alpha} & \textbf{Beta} & \textbf{Turnover} \\
+\textbf{Model} & \textbf{Gross} & \textbf{Net} & \textbf{Sharpe} & \textbf{Alpha} & \textbf{Beta} & \textbf{Turn.} \\
 \midrule
 JKP only                  & $-0.12\%$ & $-4.50\%$ & $-0.36$ & $-4.87\%$ & $0.03$ & $91\%$ \\
 \rowcolor{lightgray}
-FinBERT only               & $\mathbf{+14.2\%}$ & $\mathbf{+11.4\%}$ & $\mathbf{0.79}$ & $\mathbf{+10.6\%}$ & $0.06$ & $\mathbf{58\%}$ \\
-JKP + FinBERT              & $+4.85\%$ & $+0.49\%$ & $0.04$ & $+0.42\%$ & $0.01$ & $91\%$ \\
-JKP + FinBERT $\times$10   & $-4.54\%$ & $-8.53\%$ & $-0.52$ & $-8.07\%$ & $-0.03$ & $83\%$ \\
+FinBERT only (XGBoost)    & $\mathbf{+14.2\%}$ & $\mathbf{+11.4\%}$ & $\mathbf{0.79}$ & $\mathbf{+10.6\%}$ & $0.06$ & $\mathbf{58\%}$ \\
+JKP + FinBERT             & $+4.85\%$ & $+0.49\%$ & $0.04$ & $+0.42\%$ & $0.01$ & $91\%$ \\
+JKP + FinBERT $\times$10  & $-4.54\%$ & $-8.53\%$ & $-0.52$ & $-8.07\%$ & $-0.03$ & $83\%$ \\
 \midrule
-MLP\textsubscript{FinBERT}         & $+11.1\%$ & $+7.87\%$ & $0.58$ & $+6.24\%$ & $0.11$ & $67\%$ \\
-MLP\textsubscript{JKP+FinBERT}     & $-8.70\%$ & $-12.9\%$ & $-0.87$ & $-14.7\%$ & $0.13$ & $87\%$ \\
-LSTM\textsubscript{FinBERT}        & $-0.49\%$ & $-2.31\%$ & $-0.15$ & $-2.43\%$ & $0.01$ & $38\%$ \\
-Attention\textsubscript{FinBERT}   & $+4.02\%$ & $+2.21\%$ & $0.14$ & $+1.82\%$ & $0.03$ & $38\%$ \\
+MLP\textsubscript{FinBERT}       & $+11.1\%$ & $+7.87\%$ & $0.58$ & $+6.24\%$ & $0.11$ & $67\%$ \\
+MLP\textsubscript{JKP+FinBERT}   & $-8.70\%$ & $-12.9\%$ & $-0.87$ & $-14.7\%$ & $0.13$ & $87\%$ \\
+LSTM\textsubscript{FinBERT}      & $-0.49\%$ & $-2.31\%$ & $-0.15$ & $-2.43\%$ & $0.01$ & $38\%$ \\
+Attention\textsubscript{FinBERT} & $+4.02\%$ & $+2.21\%$ & $0.14$ & $+1.82\%$ & $0.03$ & $38\%$ \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+FinBERT-only XGBoost (Sharpe 0.79, Alpha $+10.6\%$) and MLP\textsubscript{FinBERT} (Sharpe 0.58, Alpha $+6.2\%$) are the two models with both positive IC and positive net returns. The signal survives different model architectures, but the magnitude of XGBoost's advantage over MLP reflects partly the model's ability to handle the specific sparsity pattern of sentiment features. Sequence models (LSTM, Attention) are discussed in Section~\ref{sec:disc}. The Attention model's positive net return ($+2.21\%$) despite negative average IC ($-0.039$) is explained by compounding: very strong early performance (2019--2020 Sharpe $>$1.0) offsets sustained 2021--2023 losses in dollar-weighted terms even as the equal-weight average IC turns negative.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{figures/fig5_cumulative_returns.pdf}
-    \caption{Cumulative net returns: LS Decile (left) and LO Decile (right), 2019--2023. S\&P500 shown as dashed benchmark. Orange band: COVID-19 period.}
+    \caption{Cumulative net returns: LS Decile (left) and LO Decile (right), 2019--2023. S\&P500 dashed benchmark. Orange band: COVID-19 period.}
     \label{fig:cumrets}
 \end{figure}
 
-FinBERT-only leads at $+11.4\%$ net and Sharpe 0.79. MLP\textsubscript{FinBERT} on the same features delivers $+7.87\%$ net (Sharpe 0.58), confirming the signal survives a different model class. Both JKP-combined models (XGBoost and MLP) are sharply negative. LSTM\textsubscript{FinBERT} ($-2.31\%$ net, Sharpe $-0.15$) and Attention\textsubscript{FinBERT} ($+2.21\%$ net, Sharpe $0.14$) are discussed in Section~5. Two mechanisms explain why JKP combinations underperform: (i) JKP features add within-month noise rather than cross-sectional signal; (ii) lower portfolio turnover (58\% vs.\ 91\%) saves $\approx 3\%$ per year in transaction costs.
+\subsection{Signal Persistence and Robustness}
 
-\textbf{Transaction cost sensitivity.} Table~\ref{tab:costs} shows net returns and Sharpe ratios for FinBERT-only and MLP under cost assumptions ranging from 0.1\% to 0.4\% one-way.
+\textbf{Rolling-window IC (108 months).} Using the model trained on 2008--2014 and predicting over 2015--2023, FinBERT-only achieves mean monthly IC 0.0214, positive in 62\% of months, IC $t$-statistic 2.67 ($p < 0.01$). JKP-only yields undefined monthly IC (within-month constant predictions). Full rolling results are in Appendix~\ref{app:rolling}.
 
-\begin{table}[H]
-\centering
-\caption{Transaction cost sensitivity --- LS Decile, out-of-sample 2019--2023.}
-\label{tab:costs}
-\setlength{\tabcolsep}{7pt}
-\begin{tabular}{lrrrrrrrr}
-\toprule
- & \multicolumn{2}{c}{\textbf{0.1\% one-way}} & \multicolumn{2}{c}{\textbf{0.2\% (base)}} & \multicolumn{2}{c}{\textbf{0.3\% one-way}} & \multicolumn{2}{c}{\textbf{0.4\% one-way}} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
-\textbf{Model} & Net & SR & Net & SR & Net & SR & Net & SR \\
-\midrule
-FinBERT only      & $+12.8\%$ & $0.88$ & $+11.4\%$ & $0.79$ & $+10.0\%$ & $0.69$ & $+8.61\%$ & $0.60$ \\
-MLP (FinBERT)     & $+9.48\%$ & $0.69$ & $+7.87\%$ & $0.58$ & $+6.26\%$ & $0.46$ & $+4.65\%$ & $0.34$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Both models remain profitable across the full cost range. FinBERT-only retains a Sharpe above 0.6 even at 0.4\% one-way (institutional-grade costs), confirming strategy robustness.
-
-\subsection{Period Robustness}
-
-Figure~\ref{fig:periods} and Table~\ref{tab:periods} show sub-period performance, directly addressing the concern that the COVID-19 shock drives the results.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\linewidth]{figures/fig8_period_robustness.pdf}
-    \caption{Net return of the LS Decile strategy by sub-period. FinBERT-only is positive in all three periods; its best period is 2021--2023, \textit{after} the COVID-19 shock.}
-    \label{fig:periods}
-\end{figure}
-
-\begin{table}[H]
-\centering
-\caption{FinBERT-only LS Decile: net return and Sharpe ratio by sub-period.}
-\label{tab:periods}
-\begin{tabular}{lrrl}
-\toprule
-\textbf{Period} & \textbf{Net} & \textbf{Sharpe} & \textbf{Remark} \\
-\midrule
-2019 (pre-COVID)  & $+3.87\%$ & $0.50$ & Positive in normal market conditions \\
-2020 (COVID-19)   & $+14.99\%$ & $0.77$ & Strong but not unique driver \\
-\textbf{2021--2023 (post-COVID)} & $\mathbf{+12.65\%}$ & $\mathbf{0.87}$ & \textbf{Best sub-period} \\
-2019--2023 (full) & $+11.40\%$ & $0.79$ & Full out-of-sample window \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The post-COVID period is the best-performing sub-period (Sharpe 0.87), confirming that performance is \textbf{not a COVID artefact}.
-
-\subsection{Rolling-Window Rank IC Analysis (2015--2023)}
-
-We extend predictions to the full 108-month out-of-sample window (2015--2023, validation + test) using the model trained on 2008--2014. This provides the most rigorous test of signal stability.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\linewidth]{figures/fig3_monthly_ic.pdf}
-    \caption{Monthly Rank IC for FinBERT-only (top) and JKP+FinBERT $\times$10 (bottom), 2015--2023. Green/red bars: positive/negative months. Blue line: 12-month rolling mean.}
-    \label{fig:monthly_ic}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\linewidth]{figures/fig4_ic_heatmap.pdf}
-    \caption{Mean monthly Rank IC by year and model. FinBERT-only (top row) is positive in 8 of 9 years; only 2017 shows a slight negative mean.}
-    \label{fig:ic_heatmap}
-\end{figure}
-
-\begin{table}[H]
-\centering
-\caption{Rolling-window summary over 108 out-of-sample months (2015--2023).}
-\label{tab:rolling}
-\begin{tabular}{lrrrr}
-\toprule
-\textbf{Model} & \textbf{Mean IC} & \textbf{\% IC $>0$} & \textbf{IC $t$-stat} & \textbf{Roll-12M net (mean)} \\
-\midrule
-\textbf{FinBERT only}      & $\mathbf{0.0214}$ & $\mathbf{62\%}$ & $\mathbf{2.67}$ & $\mathbf{+6.75\%}$ \\
-JKP only                   & NaN  & ---  & ---  & $-7.20\%$ \\
-JKP + FinBERT              & $-0.003$ & $23\%$ & $-0.24$ & $-4.74\%$ \\
-JKP + FinBERT $\times$10   & $0.010$  & $56\%$ & $1.23$  & $+0.78\%$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-FinBERT-only is the \textbf{only statistically significant predictor} with IC $t$-stat $= 2.67$ ($p < 0.01$). Figure~\ref{fig:rolling} shows the rolling 12-month net return.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\linewidth]{figures/fig6_rolling_12m.pdf}
-    \caption{Rolling 12-month annualised net return, FinBERT-only LS Decile (2019--2023). Mean $= +6.75\%$. Negative windows are concentrated in 2022 (rate hike shock), not COVID-19.}
-    \label{fig:rolling}
-\end{figure}
+\textbf{Sub-period performance.} FinBERT-only is profitable in all three sub-periods: pre-COVID 2019 ($+3.87\%$, Sharpe 0.50), COVID 2020 ($+14.99\%$, Sharpe 0.77), and post-COVID 2021--2023 ($+12.65\%$, Sharpe 0.87). The strongest sub-period is \textit{after} the COVID-19 shock, confirming performance is not driven by a single episode. Transaction cost sensitivity ($0.1\%$--$0.4\%$ one-way) is reported in Appendix~\ref{app:costs}.

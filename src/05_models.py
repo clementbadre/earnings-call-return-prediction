@@ -17,6 +17,7 @@ Split (temporal, never random):
 """
 
 import os
+import random
 import pandas as pd
 import numpy as np
 import xgboost as xgb
@@ -27,6 +28,13 @@ from scipy.stats import spearmanr
 import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader
+
+SEED = 42
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(SEED)
 
 ROOT        = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_PATH   = os.path.join(ROOT, "outputs", "dataset_final_v2.parquet")

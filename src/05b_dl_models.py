@@ -255,7 +255,17 @@ def predict(
 
 # ── main ───────────────────────────────────────────────────────────────────
 
+SEED = 42
+
+def set_seed(seed: int = SEED) -> None:
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+
 def main():
+    set_seed()
     os.makedirs(MODELS_DIR, exist_ok=True)
     dev = "MPS" if torch.backends.mps.is_available() else "CPU"
     print(f"Device: {dev}\n")

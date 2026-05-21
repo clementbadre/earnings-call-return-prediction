@@ -1,41 +1,55 @@
 \subsection{CRSP Monthly Returns}
 
-We use the CRSP monthly stock file for January 2008 to December 2023. From 1,450,439 raw observations we retain: \texttt{PERMNO} (firm identifier), \texttt{MthCalDt} (month-end date), \texttt{MthRet} (raw return), \texttt{sprtrn} (S\&P500 return), and \texttt{SICCD} (industry code). Raw returns are winsorized at the 1\textsuperscript{st} and 99\textsuperscript{th} percentiles.
-
-The target variable is the monthly \textbf{excess return}:
+We use the CRSP monthly stock file for January 2008 to December 2023 (1,450,439 raw observations). The target variable is the monthly excess return:
 \[
     r^e_{i,t} = \text{MthRet}_{i,t} - \text{sprtrn}_t
 \]
-This quantity has mean $-0.019\%$ per month and 48.2\% positive observations, confirming it is centred at zero as expected.
+where $\text{sprtrn}_t$ is the S\&P500 return. Raw returns are winsorised at the 1st/99th percentiles. The excess return has mean $-0.019\%$ per month and 48.2\% positive observations, confirming it is centred at zero.
 
-\subsection{JKP Quantitative Factors}
+\subsection{JKP Quantitative Factor Returns}
 
-We use the 153 long-short factor portfolio returns from \cite{jkp2023}, covering momentum, value, quality, profitability, investment, and low-risk families. The data are provided in long format and pivoted to a wide matrix of $192 \times 153$ (192 months $\times$ 153 factors, zero missing values from 2008 onwards).
+We use 153 long-short factor portfolio returns from \cite{jkp2023} (momentum, value, quality, profitability, investment, low-risk). These are monthly time-series signals: each factor takes the same value for all stocks in a given month. \textbf{Design choice:} JKP factor returns for period $t$ are realised over the same interval as CRSP returns; using them contemporaneously would be look-ahead. We lag them by one month before merging, so the vector at $t-1$ is used to predict CRSP return at $t$.
 
-\textbf{Critical design choice --- one-month lag.} JKP factor returns for period $t$ are realised over the same interval as CRSP monthly returns at $t$. Using them contemporaneously would constitute look-ahead bias. We therefore shift JKP dates forward by one month before merging, so the factor vector at $t-1$ predicts CRSP return at $t$.
+This lagging implies that JKP features encode \textit{market-level} information about recent factor performance. They may help with time-series allocation or regime identification, but they do not vary \textit{across firms} within a given month and are therefore not naturally suited to cross-sectional stock selection.
 
 \subsection{Earnings Calls and FinBERT Inference}
 
-We obtained 34,643 earnings call transcripts matched by PERMNO to CRSP firms. After extracting the Q\&A section via regex --- which captures the most forward-looking management commentary --- we chunk each text into 512-token segments and score them with \texttt{ProsusAI/finbert} \cite{araci2019}, a RoBERTa model fine-tuned on financial text. Inference ran on an Apple M4 GPU (MPS backend, $\approx$3 hours). Each call yields three probabilities averaged over chunks:~$p_\text{pos}$,~$p_\text{neg}$,~$p_\text{neu}$, summing to unity. Calls with fewer than 100 words are excluded.
+We obtained 34,643 earnings call transcripts matched to CRSP firms by PERMNO. We extract the Q\&A section (most forward-looking), chunk into 512-token segments, and score each chunk with \texttt{ProsusAI/finbert} \cite{araci2019}, a RoBERTa model fine-tuned on financial text. Each call yields three probabilities averaged over chunks: $p_\text{pos}$, $p_\text{neg}$, $p_\text{neu}$ (summing to unity). Calls with fewer than 100 words are excluded. Inference details and score distributions are in Appendix~\ref{app:finbert}.
 
-Figure~\ref{fig:finbert_dist} shows the empirical distributions. Neutral sentiment dominates (mean $p_\text{neu} = 0.71$), with $p_\text{pos} = 0.24 \gg p_\text{neg} = 0.05$, consistent with the well-documented positivity bias in managerial communications.
+\subsection{Feature Engineering}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\linewidth]{figures/fig1_finbert_dist.pdf}
-    \caption{FinBERT sentiment score distributions across 34,643 earnings calls. The dominant neutral score reflects the inherent positivity bias of prepared managerial communication.}
-    \label{fig:finbert_dist}
-\end{figure}
+From the three raw FinBERT scores we construct the following features:
 
-\subsection{Freshness Filter: A Critical Pre-processing Step}
+\begin{table}[H]
+\centering
+\caption{Engineered FinBERT features. Delta features are NaN for a firm's first earnings call.}
+\label{tab:features}
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{>{\ttfamily}l p{9cm}}
+\toprule
+\normalfont\textbf{Feature} & \textbf{Definition} \\
+\midrule
+net\_sentiment      & $p_\text{pos} - p_\text{neg}$: signed directional signal \\
+sentiment\_strength & $1 - p_\text{neu}$: non-neutrality of the call \\
+delta\_net          & $\Delta\,\texttt{net\_sentiment}$ quarter-over-quarter (\textit{surprise signal}) \\
+delta\_pos, delta\_neg & Quarter-over-quarter changes in individual components \\
+months\_since\_call & Signal age (1, 2 or 3 by construction after freshness filter) \\
+*\_zscore           & Cross-sectional z-score within each prediction month \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-A diagnostic of the raw merged dataset revealed a severe staleness problem: the median lag between the most recent earnings call and the prediction date was \textbf{7 months}. A cross-sectional Rank IC analysis confirmed that the raw sentiment level has IC~$= 0.016$ at 1-month lag, decaying to $\approx 0$ beyond 2 months.
+\textbf{Freshness filter.} The raw merged dataset reveals a severe staleness problem: the median lag between the most recent earnings call and the prediction date is \textbf{7 months}, at which point the sentiment signal has largely decayed. We retain only stock-month pairs where the most recent call occurred within \textbf{3 months} of the prediction date, reducing the dataset from 517,776 to \textbf{122,847 observations}. Section~\ref{sec:results} shows this filter is the most critical preprocessing step.
 
-We therefore apply a \textbf{freshness filter}: only stock-month pairs where the most recent call occurred within 3 months of the prediction date are retained. This reduces the dataset from 517,776 to \textbf{122,847 observations} (5,337 unique PERMNOs), keeping only actionable signals. Figure~\ref{fig:freshness} illustrates the effect.
+\textbf{Universe note.} FinBERT-based strategies are evaluated on the subset of firms with a recent earnings call. Results apply to this earnings-call-covered universe (predominantly mid- and large-cap firms) rather than the full CRSP universe. Direct comparisons between JKP-only (full universe, $\approx$122K obs with FinBERT overlap) and FinBERT-containing models (freshness-filtered) are therefore partially confounded by universe differences.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\linewidth]{figures/fig2_freshness.pdf}
-    \caption{Signal freshness before (left) and after (right) the 3-month filter. The median 7-month lag in the raw data renders most signals economically stale.}
-    \label{fig:freshness}
-\end{figure}
+\textbf{Cross-sectional z-scoring} removes time-varying means and scales, preventing the model from learning calendar effects that cannot be reproduced out-of-sample. \textbf{Delta features} are computed strictly using prior-quarter call data, with no look-ahead. The scaler is fitted on the training set only and applied to validation and test sets.
+
+\subsection{Temporal Split}
+
+We apply a strict temporal split with no random shuffling:
+\begin{itemize}[noitemsep]
+    \item \textbf{Train}: January 2008 -- December 2014 (52,931 obs)
+    \item \textbf{Validation} (early stopping only): January 2015 -- December 2018 (29,044 obs)
+    \item \textbf{Test} (all reported metrics): January 2019 -- December 2023 (40,872 obs)
+\end{itemize}
