@@ -81,7 +81,7 @@ Attention\textsubscript{FinBERT} & $+4.02\%$ & $+2.21\%$ & $0.14$ & $+1.82\%$ & 
 \end{tabular}
 \end{table}
 
-FinBERT-only XGBoost (Sharpe 0.79, Alpha $+10.6\%$) and MLP\textsubscript{FinBERT} (Sharpe 0.58, Alpha $+6.2\%$) are the only two models with both positive monthly IC and positive net returns. XGBoost achieves both higher IC (0.032 vs 0.025) and higher Sharpe, making it the stronger model in our setup; the MLP result shows the signal is not specific to a single model class. Sequence models (LSTM, Attention) are discussed in Section~\ref{sec:disc}. The Attention model's positive net return ($+2.21\%$) despite negative monthly IC ($-0.013$) is explained by compounding: very strong early performance (2019--2020 Sharpe $>$1.0) offsets sustained 2021--2023 losses in dollar-weighted terms even as the equal-weight average IC turns negative.
+FinBERT-only XGBoost (Sharpe 0.79, Alpha $+10.6\%$) and MLP\textsubscript{FinBERT} (Sharpe 0.58, Alpha $+6.2\%$) are the only two models with both positive monthly IC and positive net returns. XGBoost achieves both higher IC (0.032 vs 0.025) and higher Sharpe, making it the stronger model in our setup; the MLP result shows the signal is not tied to XGBoost alone. Sequence models (LSTM, Attention) are discussed in Section~\ref{sec:disc}. The Attention model's positive net return ($+2.21\%$) despite negative monthly IC ($-0.013$) is explained by compounding: very strong early performance (2019--2020 Sharpe $>$1.0) offsets sustained 2021--2023 losses in dollar-weighted terms even as the equal-weight average IC turns negative.
 
 \begin{figure}[H]
     \centering
