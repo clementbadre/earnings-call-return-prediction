@@ -1,5 +1,5 @@
 """
-Deep learning ablation — 3 additional models to complement 05_models.py.
+Deep learning ablation — 3 additional models to complement 06_models.py.
 
 Models added to model_results_v2.parquet:
   MLP_JKP+FinBERT    — MLP on all 165 features (JKP + FinBERT), DL equivalent
@@ -12,7 +12,7 @@ Models added to model_results_v2.parquet:
 All models: same temporal split (2008–14 train, 2015–18 val, 2019–23 test),
 same evaluation (R², Rank IC), early stopping on validation Rank IC.
 
-Run after 05_models.py. Appends new rows to model_results_v2.parquet and
+Run after 06_models.py. Appends new rows to model_results_v2.parquet and
 saves model weights to outputs/models_v2/.
 """
 

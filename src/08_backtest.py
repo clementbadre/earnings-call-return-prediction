@@ -1,7 +1,7 @@
 """
 Investment strategy backtesting.
 
-Input  : ../outputs/model_results.parquet  (predictions from 05_models.py)
+Input  : ../outputs/model_results.parquet  (predictions from 06_models.py)
          ../outputs/crsp_clean.parquet     (for sprtrn benchmark)
 Output : ../outputs/backtest_results.parquet
          Printed performance table

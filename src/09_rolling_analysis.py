@@ -51,7 +51,7 @@ def load_and_split(features: list[str]):
     df = df.dropna(subset=DELTA_COLS).copy()
 
     train = df[df["MthCalDt"] <= TRAIN_END]
-    # val is used only for early stopping, mirroring 05_models.py.
+    # val is used only for early stopping, mirroring 06_models.py.
     val   = df[(df["MthCalDt"] > TRAIN_END) & (df["MthCalDt"] <= VAL_END)]
     # Evaluated path includes validation + test months. We label it
     # "post-training" rather than pure test because 2015-2018 monitors

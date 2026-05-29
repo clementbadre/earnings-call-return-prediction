@@ -1,10 +1,10 @@
 """
 Preprocessing ablation + Ridge benchmark.
 
-Uses EXACTLY the same pipeline as 05_models.py + 06_backtest.py:
+Uses EXACTLY the same pipeline as 06_models.py + 08_backtest.py:
   - same XGBoost hyperparameters (incl. colsample_bytree, tree_method, device)
   - same temporal split and scaling
-  - same backtest via 06_backtest.run_strategy()
+  - same backtest via 08_backtest.run_strategy()
   - same performance_metrics()
   - "Full setup" row loads saved FinBERT_only predictions from model_results_v2.parquet
     to guarantee exact alignment with Table 3.
@@ -38,7 +38,7 @@ SEED         = 42
 
 np.random.seed(SEED)
 
-# ── XGBoost hyperparameters — IDENTICAL to 05_models.py ──────────────────────
+# ── XGBoost hyperparameters — IDENTICAL to 06_models.py ──────────────────────
 
 XGB_PARAMS = dict(
     n_estimators       = 500,
@@ -70,7 +70,7 @@ FEAT_SETS = {
                                       "net_sentiment_zscore", "delta_net_zscore", "delta_pos_zscore"],
 }
 
-# ── Helpers (same as 06_backtest.py) ─────────────────────────────────────────
+# ── Helpers (same as 08_backtest.py) ─────────────────────────────────────────
 
 def compute_turnover(pos_t: set, pos_t1: set) -> float:
     if not pos_t1:
@@ -79,7 +79,7 @@ def compute_turnover(pos_t: set, pos_t1: set) -> float:
 
 
 def run_strategy(df: pd.DataFrame) -> pd.DataFrame:
-    """LS Decile, identical to 06_backtest.run_strategy()."""
+    """LS Decile, identical to 08_backtest.run_strategy()."""
     monthly = []
     prev_long, prev_short = set(), set()
     for date, g in df.groupby("MthCalDt"):
@@ -103,7 +103,7 @@ def run_strategy(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def performance_metrics(monthly: pd.DataFrame, sprtrn: pd.Series) -> dict:
-    """Same as 06_backtest.performance_metrics()."""
+    """Same as 08_backtest.performance_metrics()."""
     rets     = monthly.set_index("MthCalDt")["ret_net"]
     ann_ret  = rets.mean() * 12 * 100
     ann_vol  = rets.std()  * np.sqrt(12)
